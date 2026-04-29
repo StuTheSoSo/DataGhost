@@ -9,6 +9,53 @@
 <ion-content class="dg-scanlines" *ngIf="rig$ | async as rig">
   <div class="rig-container">
 
+    <ng-container *ngIf="software$ | async as software">
+      <div class="rig-dashboard dg-glass">
+        <div class="rig-headline">
+          <span class="section-label dg-text-dim">// RIG STATUS</span>
+          <span class="rig-mode dg-text-green">SYSTEM ONLINE</span>
+        </div>
+
+        <div class="rig-display">
+          <div class="rig-chassis">
+            <div class="rig-chassis-top"></div>
+            <div class="rig-chip">
+              <span class="chip-label">CORE</span>
+              <div class="chip-core"></div>
+            </div>
+            <div class="rig-ports">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <div class="rig-summary">
+            <div class="rig-stats">
+              <div *ngFor="let u of upgrades" class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-label">{{ u.label }}</span>
+                  <span class="stat-value">{{ rig[u.stat] }}/10</span>
+                </div>
+                <div class="stat-bar">
+                  <div class="stat-fill" [style.width.%]="(rig[u.stat] / 10) * 100"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rig-software">
+              <span class="sw-title dg-text-dim">// INSTALLED</span>
+              <div class="sw-grid">
+                <div *ngFor="let s of software" class="sw-chip" [class.equipped]="s.equipped">
+                  <ion-icon [name]="s.equipped ? 'sparkles' : 'ellipse-outline'"></ion-icon>
+                  <span>{{ s.name }}</span>
+                </div>
+                <div *ngIf="!software.length" class="sw-chip empty">NONE</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
     <!-- Hardware upgrades -->
     <h2 class="section-label dg-text-dim">// HARDWARE</h2>
     <div *ngFor="let u of upgrades" class="upgrade-row dg-glass">
