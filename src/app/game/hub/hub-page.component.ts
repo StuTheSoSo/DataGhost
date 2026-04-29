@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { GameState, StoryAct } from '../../core/models/game.models';
@@ -32,7 +33,8 @@ export class HubPageComponent implements OnInit {
 
   constructor(
     private store: Store<{ game: GameState }>,
-    private tutorial: TutorialService
+    public tutorial: TutorialService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -50,6 +52,17 @@ export class HubPageComponent implements OnInit {
   async dismissTutorial(): Promise<void> {
     this.showTutorial = false;
     await this.tutorial.complete('hub');
+  }
+
+  shouldDisableTile(route: string): boolean {
+    return this.tutorial.shouldShow('inbox') && route !== '/inbox';
+  }
+
+  navigateTo(item: { label: string; icon: string; route: string }): void {
+    if (this.shouldDisableTile(item.route)) {
+      return;
+    }
+    this.router.navigate([item.route]);
   }
 
   actLabel(act: StoryAct): string {

@@ -24,6 +24,21 @@
 
 <ion-content class="dg-scanlines hack-content">
   <ng-container *ngIf="contract; else noContract">
+    <div class="hack-overlay" *ngIf="showBriefingOverlay" (click)="dismissBriefing()">
+      <div class="overlay-card" (click)="$event.stopPropagation()">
+        <span class="section-label dg-text-dim">// MISSION SUMMARY</span>
+        <div class="overlay-title dg-text-cyan">{{ objectiveLabel }}</div>
+        <p class="overlay-intro dg-text-dim">{{ missionIntro }}</p>
+        <div class="overlay-steps">
+          <div *ngFor="let step of missionSteps; let idx = index" class="overlay-step">
+            <span class="overlay-step-index">{{ idx + 1 }}</span>
+            <span>{{ step }}</span>
+          </div>
+        </div>
+        <div class="overlay-footer dg-text-dim">Tap START HACK when you are ready.</div>
+        <button class="overlay-cta" (click)="dismissBriefing()">START HACK</button>
+      </div>
+    </div>
     <div class="hack-layout">
 
       <!-- TOP: pinned topology + mission info -->
@@ -78,8 +93,7 @@
       <!-- BOTTOM: scrollable mission actions -->
       <div class="scroll-panel">
 
-        <!-- OBJECTIVE BAR -->
-      <div class="objective-card dg-glass" [class.obj-danger]="traceState.progress >= 75">
+        <div class="objective-card dg-glass" [class.obj-danger]="traceState.progress >= 75">
         <div class="objective-text"
              [class.dg-text-cyan]="traceState.progress < 75"
              [class.dg-text-red]="traceState.progress >= 75">
@@ -103,7 +117,9 @@
         <span class="section-label dg-text-dim">// INSTALLED SOFTWARE</span>
         <div *ngFor="let t of tools" class="sw-row"
              [class.sw-running]="activeToolId === t.id"
-             [class.sw-locked]="!canRun(t) && activeToolId !== t.id">
+             [class.sw-locked]="(!canRun(t) && activeToolId !== t.id) || (selectedEntryToolId && t.stage === 1 && selectedEntryToolId !== t.id)"
+             [class.sw-selected]="selectedEntryToolId === t.id && t.stage === 1"
+             (click)="t.stage === 1 && currentStage === 1 && !toolRunning ? selectEntryTool(t) : null">
           <div class="sw-info">
             <span class="sw-name dg-text-cyan">{{ t.name }}</span>
             <span class="sw-ver dg-text-dim"> {{ t.version }}</span>
@@ -112,8 +128,8 @@
           <button class="sw-btn"
                   [class.sw-btn-ready]="canRun(t)"
                   [disabled]="!canRun(t)"
-                  (click)="runTool(t)">
-            {{ activeToolId === t.id ? 'RUNNING' : canRun(t) ? 'RUN' : '—' }}
+                  (click)="runTool(t); $event.stopPropagation()">
+            {{ activeToolId === t.id ? 'RUNNING' : canRun(t) ? 'RUN' : (t.stage === 1 && currentStage === 1 ? (selectedEntryToolId === t.id ? 'READY' : 'SELECT') : '—') }}
           </button>
         </div>
       </div>
@@ -129,7 +145,7 @@
 
         <ng-container *ngIf="!puzzleSolved">
           <p class="puzzle-hint dg-text-dim">
-            Analyse the mission briefing. Enter the answer to unlock the objective.
+            Review the mission summary and enter the access code from the plan below.
           </p>
           <div class="puzzle-input-row">
             <input class="puzzle-input"
@@ -143,7 +159,7 @@
             <button class="puzzle-check-btn" (click)="checkPuzzle()">CHECK</button>
           </div>
           <p class="puzzle-error-msg dg-text-red" *ngIf="puzzleError">
-            ✗ Incorrect — check the briefing again.
+            ✗ Incorrect — review the mission summary and try again.
           </p>
         </ng-container>
 
@@ -175,7 +191,7 @@
 </ion-content>
 
 <!-- Fixed bottom button — position:fixed always works regardless of Ionic footer quirks -->
-<div class="fixed-action-bar" *ngIf="contract">
+<div class="fixed-action-bar" *ngIf="contract && !showBriefingOverlay">
   <ion-button expand="block" class="connect-btn" *ngIf="!connected" (click)="connect()">
     ▶ CONNECT TO TARGET
   </ion-button>

@@ -83,6 +83,11 @@ ion-title {
   gap: 12px;
 }
 
+.nav-tile.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .nav-tile {
   display: flex;
   flex-direction: column;

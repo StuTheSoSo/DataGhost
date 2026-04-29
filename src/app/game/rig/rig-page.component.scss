@@ -37,11 +37,29 @@
 .pip.active { background: var(--ion-color-primary); }
 .level-num { font-size: 0.65rem; width: 30px; text-align: right; }
 ion-button { --border-radius: 4px; --background: var(--ion-color-primary); --color: #000; font-size: 0.7rem; }
-.software-row { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.software-row { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .software-row.equipped { border-color: var(--ion-color-secondary); }
-.sw-info { display: flex; flex-direction: column; gap: 3px; }
-.sw-name { font-size: 0.82rem; }
-.sw-type { font-size: 0.65rem; letter-spacing: 0.1em; }
+.sw-info { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; }
+.sw-headline { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sw-name { font-size: 0.82rem; font-weight: 700; }
+.sw-tier { font-size: 0.7rem; letter-spacing: 0.1em; }
+.sw-level { display: flex; gap: 4px; }
+.sw-level .pip { width: 12px; height: 6px; border-radius: 2px; background: rgba(255,255,255,0.08); }
+.sw-level .pip.active { background: var(--ion-color-primary); }
+.sw-desc { font-size: 0.72rem; line-height: 1.4; }
+.sw-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.sw-upgrade-btn {
+  --border-radius: 999px;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --background: transparent;
+  --border-color: rgba(0,229,255,0.2);
+  --color: var(--ion-color-primary);
+  font-size: 0.7rem;
+}
+.sw-upgrade-btn[disabled] {
+  opacity: 0.3;
+}
 .empty-state { font-size: 0.78rem; padding: 12px; text-align: center; }
 .credits-note { padding-right: 16px; font-size: 0.82rem; }
 @media (max-width: 720px) {

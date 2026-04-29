@@ -32,6 +32,7 @@ export const revealFaction       = createAction('[Faction] Reveal Faction',     
 export const upgradeRig          = createAction('[Rig] Upgrade Stat',               props<{ stat: keyof RigStats; newValue: number }>());
 export const acquireSoftware     = createAction('[Rig] Acquire Software',           props<{ item: SoftwareItem }>());
 export const toggleSoftware      = createAction('[Rig] Toggle Software Equipped',   props<{ itemId: string }>());
+export const upgradeSoftware     = createAction('[Rig] Upgrade Software',            props<{ itemId: string; newTier: number }>());
 
 // ── Nodes ─────────────────────────────────────────────────
 export const acquireNode         = createAction('[Nodes] Acquire Node',             props<{ node: ProxyNode }>());

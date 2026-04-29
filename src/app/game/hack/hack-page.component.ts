@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { AlertController } from '@ionic/angular';
-import { GameState, Contract, ContractType, ContractStatus } from '../../core/models/game.models';
+import { GameState, Contract, ContractType, ContractStatus, SoftwareItem } from '../../core/models/game.models';
 import * as GameActions from '../../core/store/game.actions';
 import { TraceEngineService, TraceState } from '../../core/services/trace-engine.service';
 import { EconomyService } from '../../core/services/economy.service';
@@ -11,6 +11,7 @@ import { FactionService } from '../../core/services/faction.service';
 import { GameStateService } from '../../core/services/game-state.service';
 import { NarrativeService } from '../../core/services/narrative.service';
 import { CurrentContractService } from '../../core/services/current-contract.service';
+import { selectEquippedSoftware } from '../../core/store/game.selectors';
 
 export interface UplinkTool {
   id: string;
@@ -41,9 +42,11 @@ export class HackPageComponent implements OnInit, OnDestroy {
   toolRunning = false;
   toolProgress = 0;       // 0-100
   activeToolId: string | null = null;
+  selectedEntryToolId: string | null = null;
   private toolTimer: any = null;
 
   statusLog: string[] = [];
+  showBriefingOverlay = false;
   connSeconds = 0;
   targetIp = '';
   private connClockTimer: any = null;
@@ -66,7 +69,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
       this.addLog('Access code verified. Objective unlocked.');
     } else {
       this.puzzleError = true;
-      this.addLog('Access code rejected — check the briefing.');
+      this.addLog('Access code rejected — review the mission summary.');
     }
   }
 
@@ -116,17 +119,57 @@ export class HackPageComponent implements OnInit, OnDestroy {
       case 2: return 'RUN the Password Breaker to crack the authentication layer.';
       case 3: return 'ERASE logs first — then execute the payload.';
       case 4: return this.hasPuzzle && !this.puzzleSolved
-        ? 'DECODE the access code hidden in the mission brief, then unlock the objective.'
+        ? 'DECODE the access code from the mission summary, then unlock the objective.'
         : 'RUN the objective tool to complete the mission, then disconnect.';
       default: return '';
     }
+  }
+
+  get missionIntro(): string {
+    if (!this.contract) return '';
+    const tier = this.contract.difficulty >= 7 ? 'high-risk' : this.contract.difficulty >= 4 ? 'moderate-risk' : 'low-risk';
+    switch (this.contract.type) {
+      case ContractType.DataTheft:
+        return `Extract the target payload from the corporate vault and move it through a stealth route. This is ${tier}; any wrong move will trigger alarms.`;
+      case ContractType.AccountAccess:
+        return `Breach the secure login gate and seize the access session. One slip in the auth layer and the trace will lock onto you.`;
+      case ContractType.EvidencePlant:
+        return `Forge a believable intrusion and seed the evidence while keeping the system logs clean. Make it look like someone else did it.`;
+      case ContractType.TraceClean:
+        return `Wipe the intrusion trail from the relay chain and restore log integrity. The cleaner the scrub, the safer your exit.`;
+      case ContractType.Sabotage:
+        return `Deliver the covert payload to the hostile system and trigger a plausible failure. Keep the route hidden until the last second.`;
+      case ContractType.SocialEngineering:
+        return `Exploit human factors to gain entry without brute force. Manipulate the target and move through with minimal digital noise.`;
+      default:
+        return `Execute the mission with speed and discretion. Avoid detection and complete the primary objective.`;
+    }
+  }
+
+  get missionSteps(): string[] {
+    if (!this.contract) return [];
+    const steps = [
+      'Establish a clean proxy route into the target network.',
+      'Bypass authentication and gain elevated access.',
+      'Erase traces before activating the objective payload.',
+      `Complete the ${this.objectiveLabel.toLowerCase()} objective and disconnect safely.`
+    ];
+    if (this.hasPuzzle) {
+      steps.splice(3, 0, 'Decode the access code from the mission summary before the final stage.');
+    }
+    return steps;
   }
 
   get runningToolName(): string {
     return this.tools.find(t => t.id === this.activeToolId)?.name ?? '';
   }
 
+  dismissBriefing(): void {
+    this.showBriefingOverlay = false;
+  }
+
   private subs = new Subscription();
+  private equippedSoftware: SoftwareItem[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -142,6 +185,12 @@ export class HackPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.subs.add(
+      this.store.select(selectEquippedSoftware).subscribe(items => {
+        this.equippedSoftware = items;
+      })
+    );
+
     this.contract = this.currentContract.contract;
     this.contractId = this.contract?.id ?? this.route.snapshot.paramMap.get('contractId');
     if (this.contract) {
@@ -149,6 +198,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
       this.targetIp = this.generateIp();
       this.addLog('Uplink OS v2.0 - ready.');
       this.addLog(`Mission loaded: ${this.contract.title}`);
+      this.showBriefingOverlay = true;
     }
 
     this.subs.add(
@@ -180,6 +230,9 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   private buildToolList(c: Contract): void {
     const base = Math.max(2000, c.difficulty * 1200);
+    const crackerTier = this.softwareTier('cracker');
+    const wiperTier = this.softwareTier('wiper');
+
     this.tools = [
       {
         id: 'scanner',
@@ -200,17 +253,17 @@ export class HackPageComponent implements OnInit, OnDestroy {
       {
         id: 'passbreak',
         name: 'Password Breaker',
-        version: 'v' + Math.min(5, c.difficulty),
+        version: 'v' + Math.min(5, c.difficulty + crackerTier),
         description: 'Dictionary + brute-force hybrid against the auth layer.',
-        durationMs: base * 1.5,
+        durationMs: base * 1.5 * this.softwareSpeedFactor('cracker'),
         stage: 2
       },
       {
         id: 'logdel',
         name: 'Log Deleter',
-        version: 'v' + Math.min(3, c.difficulty),
+        version: 'v' + Math.min(3, c.difficulty + wiperTier),
         description: 'Erases intrusion records from all traversed nodes.',
-        durationMs: base * 0.8,
+        durationMs: base * 0.8 * this.softwareSpeedFactor('wiper'),
         stage: 3
       },
       {
@@ -229,7 +282,8 @@ export class HackPageComponent implements OnInit, OnDestroy {
     this.connected = true;
     this.currentStage = 1;
     this.routeProgress = 0;
-    this.trace.start(this.contract.difficulty);
+    this.selectedEntryToolId = this.tools.find(t => t.stage === 1)?.id ?? null;
+    this.trace.start(this.contract.difficulty, this.calculateExpectedMissionMs());
     this.connSeconds = 0;
     this.addLog(`Connecting via ${this.routeNodes.length - 1} proxy nodes...`);
     this.addLog(`Target IP: ${this.targetIp}`);
@@ -239,7 +293,9 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   canRun(tool: UplinkTool): boolean {
     if (!this.connected || this.toolRunning) return false;
-    if (tool.stage === 1 && this.currentStage === 1) return true;
+    if (tool.stage === 1 && this.currentStage === 1) {
+      return this.selectedEntryToolId === tool.id;
+    }
     if (tool.stage === 2 && this.currentStage === 2) return true;
     if (tool.stage === 3 && this.currentStage === 3) return true;
     if (tool.stage === 4 && this.currentStage === 4) {
@@ -271,10 +327,29 @@ export class HackPageComponent implements OnInit, OnDestroy {
     }, stepMs);
   }
 
+  selectEntryTool(tool: UplinkTool): void {
+    if (tool.stage !== 1 || this.currentStage !== 1 || this.toolRunning) return;
+    this.selectedEntryToolId = tool.id;
+  }
+
   private calculateRouteProgress(toolProgress: number): number {
     const stageIndex = Math.min(Math.max(this.currentStage, 1), 3);
     const segmentSize = 100 / 3;
     return Math.min(100, ((stageIndex - 1) * segmentSize) + (toolProgress / 100) * segmentSize);
+  }
+
+  private softwareTier(type: SoftwareItem['type']): number {
+    return this.equippedSoftware.find(s => s.type === type)?.tier ?? 0;
+  }
+
+  private softwareSpeedFactor(type: SoftwareItem['type']): number {
+    const tier = this.softwareTier(type);
+    return Math.max(0.6, 1 - 0.08 * tier);
+  }
+
+  private calculateExpectedMissionMs(): number {
+    const total = this.tools.reduce((sum, tool) => sum + tool.durationMs, 0);
+    return total * 1.35;
   }
 
   private calculateRouteProgressForStage(completedStage: number): number {
@@ -291,6 +366,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     // Stage 1 tools: any one of them advances to stage 2 and moves to PRX-1
     if (tool.stage === 1 && this.currentStage === 1) {
       this.currentStage = 2;
+      this.selectedEntryToolId = null;
       this.routeProgress = this.calculateRouteProgressForStage(tool.stage);
       this.addLog('Entry layer bypassed. Auth layer exposed.');
     }
@@ -302,6 +378,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     }
     // Stage 3: log deleter — clears tracks, then unlocks target and moves to TARGET
     else if (tool.stage === 3 && this.currentStage === 3) {
+      this.trace.reduceTrace(Math.min(40, 15 + (this.contract?.difficulty ?? 1) * 2));
       this.currentStage = 4;
       this.routeProgress = this.calculateRouteProgressForStage(tool.stage);
       this.puzzleSolved = false;
@@ -318,6 +395,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   disconnect(): void {
     if (!this.contract) return;
+    this.selectedEntryToolId = null;
     clearInterval(this.connClockTimer);
     this.trace.stop();
     this.addLog('Manual disconnect. Mission aborted.');

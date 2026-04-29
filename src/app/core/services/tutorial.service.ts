@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 
-type TutorialStep = 'worldIntro' | 'identity' | 'hub' | 'jobBoard';
+type TutorialStep = 'worldIntro' | 'identity' | 'hub' | 'inbox' | 'jobBoard';
 
 interface TutorialState {
   worldIntro: boolean;
   identity: boolean;
   hub: boolean;
+  inbox: boolean;
   jobBoard: boolean;
 }
 
@@ -18,6 +19,7 @@ export class TutorialService {
     worldIntro: false,
     identity: false,
     hub: false,
+    inbox: false,
     jobBoard: false
   };
 
@@ -31,10 +33,11 @@ export class TutorialService {
         worldIntro: !!parsed.worldIntro,
         identity: !!parsed.identity,
         hub: !!parsed.hub,
+        inbox: !!parsed.inbox,
         jobBoard: !!parsed.jobBoard
       };
     } catch {
-      this.state = { worldIntro: false, identity: false, hub: false, jobBoard: false };
+      this.state = { worldIntro: false, identity: false, hub: false, inbox: false, jobBoard: false };
     }
   }
 
@@ -48,7 +51,7 @@ export class TutorialService {
   }
 
   async reset(): Promise<void> {
-    this.state = { worldIntro: false, identity: false, hub: false, jobBoard: false };
+    this.state = { worldIntro: false, identity: false, hub: false, inbox: false, jobBoard: false };
     await Preferences.set({ key: TUTORIAL_KEY, value: JSON.stringify(this.state) });
   }
 }

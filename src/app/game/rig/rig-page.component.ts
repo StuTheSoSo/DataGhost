@@ -49,6 +49,19 @@ export class RigPageComponent implements OnInit {
     return costPerLevel * currentValue;
   }
 
+  upgradeSoftware(item: SoftwareItem): void {
+    if (item.tier >= 5) return;
+    const cost = this.softwareUpgradeCost(item);
+    const spent = this.economy.spend(cost, `Upgrade ${item.name}`);
+    if (spent) {
+      this.store.dispatch(GameActions.upgradeSoftware({ itemId: item.id, newTier: item.tier + 1 }));
+    }
+  }
+
+  softwareUpgradeCost(item: SoftwareItem): number {
+    return 1000 * item.tier;
+  }
+
   toggleSoftware(id: string): void {
     this.store.dispatch(GameActions.toggleSoftware({ itemId: id }));
   }

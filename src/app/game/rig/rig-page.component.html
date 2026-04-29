@@ -80,15 +80,26 @@
     <!-- Software inventory -->
     <h2 class="section-label dg-text-dim">// SOFTWARE</h2>
     <ng-container *ngIf="software$ | async as software">
-      <div *ngFor="let s of software" class="software-row dg-glass"
-           [class.equipped]="s.equipped" (click)="toggleSoftware(s.id)">
-        <div class="sw-info">
-          <span class="sw-name" [class.dg-text-green]="s.equipped" [class.dg-text-dim]="!s.equipped">{{ s.name }}</span>
-          <span class="sw-type dg-text-dim">{{ s.type | uppercase }}</span>
+      <div *ngFor="let s of software" class="software-row dg-glass">
+        <div class="sw-info" (click)="toggleSoftware(s.id)">
+          <div class="sw-headline">
+            <span class="sw-name" [class.dg-text-green]="s.equipped" [class.dg-text-dim]="!s.equipped">{{ s.name }}</span>
+            <span class="sw-tier dg-text-dim">TIER {{ s.tier }}/5</span>
+          </div>
+          <div class="sw-level">
+            <span *ngFor="let pip of [1,2,3,4,5]" class="pip" [class.active]="pip <= s.tier"></span>
+          </div>
+          <span class="sw-desc dg-text-dim">{{ s.description }}</span>
         </div>
-        <ion-icon [name]="s.equipped ? 'checkmark-circle' : 'ellipse-outline'"
-                  [class.dg-text-green]="s.equipped" [class.dg-text-dim]="!s.equipped">
-        </ion-icon>
+        <div class="sw-actions">
+          <ion-button size="small" fill="outline" class="sw-upgrade-btn"
+                      [disabled]="s.tier >= 5" (click)="upgradeSoftware(s)">
+            ℂ{{ softwareUpgradeCost(s) | number }}
+          </ion-button>
+          <ion-icon [name]="s.equipped ? 'checkmark-circle' : 'ellipse-outline'"
+                    [class.dg-text-green]="s.equipped" [class.dg-text-dim]="!s.equipped">
+          </ion-icon>
+        </div>
       </div>
       <div *ngIf="!software.length" class="empty-state dg-text-dim">No software installed.</div>
     </ng-container>

@@ -39,12 +39,12 @@ export class TraceEngineService {
   }
 
   /** Start a trace tick loop for an active contract */
-  start(baseDifficulty: number): void {
+  start(baseDifficulty: number, expectedDurationMs?: number): void {
     this.traceActive = true;
     this.traceProgress = 0;
     this.stop$ = new Subject<void>();
 
-    const tickRate = this.calcTickRate(baseDifficulty);
+    const tickRate = this.calcTickRate(baseDifficulty, expectedDurationMs);
 
     interval(500)
       .pipe(takeUntil(this.stop$))
@@ -97,12 +97,13 @@ export class TraceEngineService {
     Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
   }
 
-  private calcTickRate(difficulty: number): number {
-    // Base rate per 500ms tick; bandwidth reduces it, poor route reliability increases it
-    const bwFactor = 1 - (this.rig.bandwidth / 20);      // 0.05 .. 0.95
+  private calcTickRate(difficulty: number, expectedDurationMs?: number): number {
     const reliability = this.calcRouteReliability();
-    const unreliabilityBonus = (1 - reliability) * 5;
-    return (difficulty * 0.8 * bwFactor) + unreliabilityBonus;
+    const timeSec = Math.max(20, (expectedDurationMs ?? 30000) / 1000 * 1.3);
+    const baseRate = 50 / timeSec;
+    const difficultyPressure = 1 + (difficulty - 1) * 0.05;
+    const unreliabilityBonus = (1 - reliability) * 1.5;
+    return Math.max(0.35, Math.min(12, baseRate * difficultyPressure + unreliabilityBonus));
   }
 
   private calcRouteReliability(): number {

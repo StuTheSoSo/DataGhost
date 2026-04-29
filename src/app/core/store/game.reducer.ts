@@ -111,6 +111,12 @@ export const gameReducer = createReducer(
       s.id === itemId ? { ...s, equipped: !s.equipped } : s
     )
   })),
+  on(GameActions.upgradeSoftware, (state, { itemId, newTier }) => ({
+    ...state,
+    ownedSoftware: state.ownedSoftware.map(s =>
+      s.id === itemId ? { ...s, tier: Math.min(5, newTier) } : s
+    )
+  })),
 
   // ── Nodes ────────────────────────────────────────────────
   on(GameActions.acquireNode, (state, { node }) => ({

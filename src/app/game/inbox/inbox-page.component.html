@@ -6,6 +6,10 @@
 </ion-header>
 <ion-content class="dg-scanlines">
   <div class="inbox-container">
+    <div class="inbox-tutorial dg-glass" *ngIf="showTutorial">
+      <div class="tutorial-title dg-text-amber">INBOX // READ YOUR FIRST EMAIL</div>
+      <p class="tutorial-copy dg-text-dim">Open the top message from VECTOR and read it. After you read the first email, return to the hub and proceed to the job board.</p>
+    </div>
     <ng-container *ngIf="messages$ | async as messages">
       <div *ngFor="let msg of messages" class="message-card dg-glass"
            [class.unread]="!msg.read" (click)="toggle(msg)">

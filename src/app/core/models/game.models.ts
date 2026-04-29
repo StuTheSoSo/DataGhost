@@ -173,6 +173,25 @@ export const initialFactionReputations: Record<FactionId, FactionReputation> = {
 
 export const initialRig: RigStats = { cpu: 1, ram: 1, bandwidth: 1 };
 
+export const initialSoftware: SoftwareItem[] = [
+  {
+    id: 'password-cracker',
+    name: 'Password Cracker',
+    type: 'cracker',
+    tier: 1,
+    equipped: true,
+    description: 'Cracks weak auth layers and reduces password challenge time.'
+  },
+  {
+    id: 'log-deleter',
+    name: 'Log Deleter',
+    type: 'wiper',
+    tier: 1,
+    equipped: true,
+    description: 'Erases intrusion records and keeps trace growth under control.'
+  }
+];
+
 export const initialGameState: GameState = {
   initialized: false,
   player: null,
@@ -182,7 +201,7 @@ export const initialGameState: GameState = {
   ending: GameEndingType.None,
   factionReputations: initialFactionReputations,
   rig: initialRig,
-  ownedSoftware: [],
+  ownedSoftware: initialSoftware,
   ownedNodes: [],
   activeRouteNodeIds: [],
   contracts: [],

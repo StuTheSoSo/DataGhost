@@ -53,6 +53,10 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
   }
 
   ionViewWillEnter(): void {
+    if (this.tutorial.shouldShow('inbox')) {
+      this.router.navigate(['/inbox']);
+      return;
+    }
     this.showTutorial = this.tutorial.shouldShow('jobBoard');
   }
 
