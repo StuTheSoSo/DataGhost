@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/hub"></ion-back-button></ion-buttons>
+    <ion-title class="dg-text-cyan">// INBOX</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="dg-scanlines">
+  <div class="inbox-container">
+    <ng-container *ngIf="messages$ | async as messages">
+      <div *ngFor="let msg of messages" class="message-card dg-glass"
+           [class.unread]="!msg.read" (click)="toggle(msg)">
+        <div class="msg-header">
+          <ion-icon name="at-outline" [class.dg-text-cyan]="!msg.read" class="dg-text-dim"></ion-icon>
+          <span class="sender" [class.dg-text-cyan]="!msg.read" [class.dg-text-dim]="msg.read">{{ msg.fromAlias }}</span>
+          <span class="timestamp dg-text-dim">{{ msg.timestamp | date:'shortTime' }}</span>
+          <ion-icon [name]="expandedId === msg.id ? 'chevron-up' : 'chevron-down'" class="dg-text-dim expand-icon"></ion-icon>
+        </div>
+        <p class="subject dg-text-dim" [class.dg-text-amber]="!msg.read">{{ msg.subject }}</p>
+        <div *ngIf="expandedId === msg.id" class="msg-body dg-text-dim">{{ msg.body }}</div>
+      </div>
+      <div *ngIf="!messages.length" class="empty-state dg-text-dim">No messages received yet.</div>
+    </ng-container>
+  </div>
+</ion-content>

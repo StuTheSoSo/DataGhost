@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title class="dg-text-cyan">// DATAGHOST</ion-title>
+    <ion-note slot="end" class="credits-display" *ngIf="credits$ | async as credits">
+      ℂ{{ credits | number }}
+    </ion-note>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dg-scanlines" [fullscreen]="true">
+  <div class="hub-container">
+
+    <div class="dg-glass tutorial-panel" *ngIf="showTutorial">
+      <div class="tutorial-title dg-text-amber">TUTORIAL // OPERATIONS HUB</div>
+      <p class="tutorial-copy dg-text-dim">This is your command screen. Start with JOB BOARD, then move through HACK, INBOX, and RIG upgrades.</p>
+      <ion-button size="small" fill="outline" (click)="dismissTutorial()">CONTINUE</ion-button>
+    </div>
+
+    <!-- Identity bar -->
+    <div class="dg-glass identity-bar" *ngIf="player$ | async as player">
+      <span class="alias dg-text-cyan">{{ player.alias }}</span>
+      <span class="archetype dg-text-dim">// {{ player.archetype | uppercase }}</span>
+      <span class="chapter-tag dg-text-amber" *ngIf="act$ | async as act">
+        {{ actLabel(act) }} · CH.{{ chapter$ | async }}
+      </span>
+    </div>
+
+    <!-- Nav grid -->
+    <div class="nav-grid">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.route"
+        class="nav-tile dg-glass dg-scanlines">
+        <ion-icon [name]="item.icon" class="nav-icon dg-text-cyan"></ion-icon>
+        <span class="nav-label">{{ item.label }}</span>
+        <ion-badge *ngIf="item.route === '/inbox' && (unreadCount$ | async) as count" color="danger">
+          {{ count }}
+        </ion-badge>
+      </a>
+    </div>
+
+  </div>
+</ion-content>

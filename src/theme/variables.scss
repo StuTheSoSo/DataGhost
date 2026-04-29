@@ -1,0 +1,116 @@
+// DataGhost — Dark Glass / Holographic theme
+
+// ── Brand palette ──────────────────────────────────────────
+$dg-bg:           #0a0c10;
+$dg-surface:      #10141c;
+$dg-surface-2:    #171c28;
+$dg-border:       rgba(0, 229, 255, 0.12);
+$dg-cyan:         #00e5ff;
+$dg-green:        #00ff88;
+$dg-amber:        #ffb300;
+$dg-red:          #ff3d5a;
+$dg-text:         #c8d6e5;
+$dg-text-dim:     #5a6a7e;
+$dg-glass:        rgba(16, 20, 28, 0.72);
+
+// ── Ionic CSS custom properties ────────────────────────────
+:root {
+  --ion-background-color:             #{$dg-bg};
+  --ion-background-color-rgb:         10, 12, 16;
+  --ion-text-color:                   #{$dg-text};
+  --ion-text-color-rgb:               200, 214, 229;
+  --ion-color-primary:                #{$dg-cyan};
+  --ion-color-primary-rgb:            0, 229, 255;
+  --ion-color-primary-contrast:       #000000;
+  --ion-color-primary-shade:          #00c8e0;
+  --ion-color-primary-tint:           #1ae8ff;
+  --ion-color-secondary:              #{$dg-green};
+  --ion-color-secondary-rgb:          0, 255, 136;
+  --ion-color-secondary-contrast:     #000000;
+  --ion-color-secondary-shade:        #00e077;
+  --ion-color-secondary-tint:         #1affa0;
+  --ion-color-warning:                #{$dg-amber};
+  --ion-color-warning-rgb:            255, 179, 0;
+  --ion-color-warning-contrast:       #000000;
+  --ion-color-warning-shade:          #e09c00;
+  --ion-color-warning-tint:           #ffbb1a;
+  --ion-color-danger:                 #{$dg-red};
+  --ion-color-danger-rgb:             255, 61, 90;
+  --ion-color-danger-contrast:        #ffffff;
+  --ion-color-danger-shade:           #e03650;
+  --ion-color-danger-tint:            #ff506b;
+  --ion-color-medium:                 #{$dg-text-dim};
+  --ion-color-medium-rgb:             90, 106, 126;
+  --ion-color-medium-contrast:        #ffffff;
+  --ion-color-medium-shade:           #4e5d6e;
+  --ion-color-medium-tint:            #6b7988;
+  --ion-color-dark:                   #{$dg-surface-2};
+  --ion-toolbar-background:           #{$dg-surface};
+  --ion-tab-bar-background:           #{$dg-surface};
+  --ion-tab-bar-border-color:         #{$dg-border};
+  --ion-item-background:              #{$dg-surface};
+  --ion-card-background:              #{$dg-surface-2};
+  --ion-border-color:                 #{$dg-border};
+  --ion-font-family:                  'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+}
+
+// ── Global utility styles ───────────────────────────────────
+body {
+  background: $dg-bg;
+  color: $dg-text;
+}
+
+ion-app {
+  background: $dg-bg;
+}
+
+// Glass card mixin
+.dg-glass {
+  background: $dg-glass;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $dg-border;
+  border-radius: 8px;
+}
+
+// Scanline overlay
+.dg-scanlines {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.08) 2px,
+      rgba(0, 0, 0, 0.08) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+  }
+}
+
+// Pulse glow
+@keyframes dg-pulse {
+  0%, 100% { box-shadow: 0 0 4px $dg-cyan; }
+  50%       { box-shadow: 0 0 14px $dg-cyan, 0 0 28px rgba(0, 229, 255, 0.3); }
+}
+
+// Glitch text
+@keyframes dg-glitch {
+  0%   { clip-path: inset(40% 0 61% 0); transform: translate(-2px, 0); }
+  20%  { clip-path: inset(92% 0 1% 0);  transform: translate(2px, 0); }
+  40%  { clip-path: inset(43% 0 50% 0); transform: translate(-1px, 0); }
+  60%  { clip-path: inset(25% 0 58% 0); transform: translate(1px, 0); }
+  80%  { clip-path: inset(54% 0 7% 0);  transform: translate(-2px, 0); }
+  100% { clip-path: inset(58% 0 43% 0); transform: translate(0); }
+}
+
+.dg-text-cyan  { color: $dg-cyan; }
+.dg-text-green { color: $dg-green; }
+.dg-text-amber { color: $dg-amber; }
+.dg-text-red   { color: $dg-red; }
+.dg-text-dim   { color: $dg-text-dim; }
+

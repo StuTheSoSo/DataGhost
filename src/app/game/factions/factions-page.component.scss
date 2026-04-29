@@ -1,0 +1,12 @@
+:host { display: block; }
+.factions-container { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.faction-card { padding: 16px; }
+.faction-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.faction-icon { font-size: 1.3rem; }
+.faction-name { font-size: 0.88rem; font-weight: 700; letter-spacing: 0.1em; flex: 1; }
+.rep-badge { font-size: 0.6rem; letter-spacing: 0.08em; }
+.faction-desc { font-size: 0.75rem; line-height: 1.6; margin: 0 0 12px; }
+.rep-row { display: flex; align-items: center; gap: 10px; }
+.rep-label { font-size: 0.65rem; letter-spacing: 0.1em; width: 80px; }
+ion-progress-bar { flex: 1; height: 6px; border-radius: 3px; }
+.rep-score { font-size: 0.75rem; font-weight: 700; width: 30px; text-align: right; }

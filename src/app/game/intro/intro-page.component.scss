@@ -1,0 +1,73 @@
+:host {
+  display: block;
+}
+
+.intro-content {
+  --background: radial-gradient(circle at 20% 10%, rgba(0, 229, 255, 0.14), transparent 48%),
+                radial-gradient(circle at 80% 90%, rgba(255, 61, 90, 0.12), transparent 52%),
+                #0a0c10;
+}
+
+.intro-wrap {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 22px 14px;
+}
+
+.intro-card {
+  width: min(560px, 100%);
+  padding: 24px 18px;
+}
+
+.kicker {
+  margin: 0 0 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+}
+
+.title {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
+}
+
+.body {
+  margin: 0 0 12px;
+  line-height: 1.65;
+  font-size: 0.8rem;
+}
+
+.intro-steps {
+  margin-top: 14px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #c8d6e5;
+}
+
+.step-key {
+  margin-right: 4px;
+  font-weight: 700;
+}
+
+.begin-btn {
+  --background: var(--ion-color-primary);
+  --color: #000;
+  --border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+}
+
+@media (max-width: 420px) {
+  .title {
+    font-size: 0.96rem;
+  }
+}

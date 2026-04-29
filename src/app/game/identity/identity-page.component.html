@@ -1,0 +1,62 @@
+<ion-content class="dg-scanlines" [fullscreen]="true">
+  <div class="identity-container">
+    <div class="dg-glass identity-card">
+      <div class="tutorial-card" *ngIf="showTutorial">
+        <div class="tutorial-title dg-text-amber">TUTORIAL // IDENTITY BOOTSTRAP</div>
+        <p class="tutorial-copy dg-text-dim">Set your alias, then choose your origin skills profile. These bonuses shape your early game and trace pressure.</p>
+        <ol class="tutorial-steps dg-text-dim">
+          <li>Enter an alias. This is how contacts and factions will know you.</li>
+          <li>Pick an origin card. Its listed bonuses are your starting skills.</li>
+          <li>Press INITIALIZE to unlock your first contracts.</li>
+        </ol>
+        <ion-button size="small" fill="outline" class="tutorial-close" (click)="dismissTutorial()">UNDERSTOOD</ion-button>
+      </div>
+
+      <h1 class="dg-text-cyan title">// INITIALIZE IDENTITY</h1>
+      <p class="subtitle dg-text-dim">Choose your alias and origin. This shapes your starting capabilities.</p>
+
+      <form [formGroup]="form">
+        <ion-item class="alias-input" lines="none">
+          <ion-label position="stacked" class="dg-text-dim">ALIAS</ion-label>
+          <ion-input
+            formControlName="alias"
+            placeholder="e.g. sp3ctr3"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            class="mono-input">
+          </ion-input>
+        </ion-item>
+        <div class="input-hint dg-text-dim" *ngIf="form.get('alias')?.touched && form.get('alias')?.invalid">
+          2–20 chars. Letters, numbers, _ and - only.
+        </div>
+
+        <h2 class="section-label dg-text-dim">// ORIGIN</h2>
+
+        <div class="archetypes">
+          <div
+            *ngFor="let a of archetypes"
+            class="archetype-card dg-glass"
+            [class.selected]="selectedArchetype === a.id"
+            (click)="selectArchetype(a.id)">
+            <div class="arch-label dg-text-cyan">{{ a.label }}</div>
+            <div class="arch-tagline dg-text-dim">{{ a.tagline }}</div>
+            <div class="arch-bonuses">
+              <span *ngFor="let b of a.bonuses | keyvalue" class="bonus-chip dg-text-green">
+                +{{ b.value }} {{ b.key | uppercase }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          class="confirm-btn"
+          [disabled]="form.invalid || !selectedArchetype"
+          (click)="confirm()">
+          INITIALIZE
+        </ion-button>
+      </form>
+    </div>
+  </div>
+</ion-content>

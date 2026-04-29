@@ -1,0 +1,119 @@
+:host { display: block; }
+
+.hub-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tutorial-panel {
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 179, 0, 0.35);
+  background: rgba(255, 179, 0, 0.05);
+
+  ion-button {
+    --border-color: rgba(255, 179, 0, 0.45);
+    --color: var(--ion-color-warning);
+    --border-radius: 4px;
+    margin: 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+  }
+}
+
+.tutorial-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.tutorial-copy {
+  margin: 0 0 10px;
+  font-size: 0.73rem;
+  line-height: 1.45;
+}
+
+ion-toolbar {
+  --background: var(--ion-toolbar-background);
+  --border-color: var(--ion-border-color);
+}
+
+ion-title {
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
+}
+
+.credits-display {
+  padding-right: 16px;
+  font-family: var(--ion-font-family);
+  color: var(--ion-color-secondary);
+  font-size: 0.85rem;
+}
+
+.identity-bar {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.alias {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.archetype {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.chapter-tag {
+  margin-left: auto;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.nav-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 12px;
+  text-decoration: none;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+
+  &:active {
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+  }
+}
+
+.nav-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.nav-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  color: var(--ion-text-color);
+}
+
+ion-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.65rem;
+}

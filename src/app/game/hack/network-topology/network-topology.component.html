@@ -1,0 +1,94 @@
+<div class="topology-wrap dg-glass">
+  <span class="topo-label dg-text-dim">// CONNECTION ANALYSER</span>
+
+  <svg [attr.viewBox]="'0 0 ' + W + ' ' + H"
+       class="topology-svg"
+       aria-hidden="true"
+       preserveAspectRatio="xMidYMid meet">
+
+    <!-- Base route — dotted like original Uplink -->
+    <polyline *ngIf="routeNodes.length > 1"
+              [attr.points]="routePolylinePoints"
+              class="route-base"
+              fill="none" />
+
+    <!-- Trace overlay: grows from TARGET → GATEWAY -->
+    <polyline *ngIf="connected && routeProgress > 0 && routeNodes.length > 1"
+              [attr.points]="tracePolylinePoints"
+              class="trace-line"
+              fill="none"
+              [class.trace-safe]="traceProgress < 40"
+              [class.trace-warn]="traceProgress >= 40 && traceProgress < 75"
+              [class.trace-danger]="traceProgress >= 75"
+              [attr.stroke-dasharray]="totalPathLength"
+              [attr.stroke-dashoffset]="traceDashOffset" />
+
+    <!-- Nodes -->
+    <g *ngFor="let node of routeNodes; let i = index"
+       [attr.transform]="'translate(' + nodePositions[i].x + ',' + nodePositions[i].y + ')'">
+
+      <!-- Glow ring for active node -->
+      <circle *ngIf="nodeStatusClass(i) === 'node-active'"
+              cx="0" cy="0" r="18"
+              class="node-glow" />
+
+      <!-- HOST node: monitor shape (GATEWAY / TARGET) -->
+      <ng-container *ngIf="nodeType(i) === 'host'">
+        <rect x="-11" y="-10" width="22" height="16" rx="2"
+              class="node-shape"
+              [class.node-off]="nodeStatusClass(i) === 'node-off'"
+              [class.node-done]="nodeStatusClass(i) === 'node-done'"
+              [class.node-active]="nodeStatusClass(i) === 'node-active'"
+              [class.node-pending]="nodeStatusClass(i) === 'node-pending'" />
+        <rect x="-3" y="6" width="6" height="3"
+              class="node-stand"
+              [class.node-off]="nodeStatusClass(i) === 'node-off'"
+              [class.node-done]="nodeStatusClass(i) === 'node-done'"
+              [class.node-active]="nodeStatusClass(i) === 'node-active'"
+              [class.node-pending]="nodeStatusClass(i) === 'node-pending'" />
+        <rect x="-7" y="9" width="14" height="2"
+              class="node-stand"
+              [class.node-off]="nodeStatusClass(i) === 'node-off'"
+              [class.node-done]="nodeStatusClass(i) === 'node-done'"
+              [class.node-active]="nodeStatusClass(i) === 'node-active'"
+              [class.node-pending]="nodeStatusClass(i) === 'node-pending'" />
+        <rect *ngIf="nodeStatusClass(i) === 'node-active'"
+              x="-8" y="-7" width="16" height="10" rx="1"
+              class="screen-glow" />
+      </ng-container>
+
+      <!-- PROXY node: diamond (intermediate bounce nodes) -->
+      <ng-container *ngIf="nodeType(i) === 'proxy'">
+        <polygon points="0,-10 10,0 0,10 -10,0"
+                 class="node-shape node-diamond"
+                 [class.node-off]="nodeStatusClass(i) === 'node-off'"
+                 [class.node-done]="nodeStatusClass(i) === 'node-done'"
+                 [class.node-active]="nodeStatusClass(i) === 'node-active'"
+                 [class.node-pending]="nodeStatusClass(i) === 'node-pending'" />
+        <text x="0" y="4" class="proxy-icon"
+              [class.icon-active]="nodeStatusClass(i) === 'node-active'"
+              text-anchor="middle">&#x2B21;</text>
+      </ng-container>
+
+      <!-- Label using side-aware positioning helpers -->
+      <text [attr.x]="labelX(i) - nodePositions[i].x"
+            [attr.y]="labelY(i) - nodePositions[i].y"
+            class="node-label"
+            [class.label-active]="nodeStatusClass(i) === 'node-active'"
+            [class.label-done]="nodeStatusClass(i) === 'node-done'"
+            [attr.text-anchor]="labelAnchor(i)">{{ node.label }}</text>
+
+    </g>
+
+    <!-- Moving trace-head dot -->
+    <circle *ngIf="connected && traceProgress > 0"
+            [attr.cx]="traceHeadPos.x"
+            [attr.cy]="traceHeadPos.y"
+            r="4"
+            class="trace-head"
+            [class.head-safe]="traceProgress < 40"
+            [class.head-warn]="traceProgress >= 40 && traceProgress < 75"
+            [class.head-danger]="traceProgress >= 75" />
+
+  </svg>
+</div>

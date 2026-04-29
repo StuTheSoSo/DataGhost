@@ -1,0 +1,144 @@
+:host {
+  display: block;
+}
+
+.identity-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px 40px;
+}
+
+.identity-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 28px 20px;
+}
+
+.tutorial-card {
+  margin-bottom: 18px;
+  padding: 12px 12px 10px;
+  border: 1px solid rgba(255, 179, 0, 0.35);
+  border-radius: 4px;
+  background: rgba(255, 179, 0, 0.06);
+}
+
+.tutorial-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.tutorial-copy {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+.tutorial-steps {
+  margin: 0 0 8px 16px;
+  padding: 0;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.tutorial-close {
+  --border-color: rgba(255, 179, 0, 0.45);
+  --color: var(--ion-color-warning);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.title {
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: 0.78rem;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.alias-input {
+  --background: rgba(0,0,0,0.3);
+  --border-radius: 4px;
+  --padding-start: 12px;
+  margin-bottom: 4px;
+}
+
+.mono-input {
+  font-family: var(--ion-font-family);
+  color: var(--ion-color-primary);
+  letter-spacing: 0.1em;
+}
+
+.input-hint {
+  font-size: 0.7rem;
+  padding: 4px 0 8px 12px;
+}
+
+.section-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  margin: 24px 0 12px;
+}
+
+.archetypes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.archetype-card {
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &.selected {
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.25);
+  }
+}
+
+.arch-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+
+.arch-tagline {
+  font-size: 0.74rem;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.arch-bonuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bonus-chip {
+  font-size: 0.65rem;
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.25);
+  border-radius: 3px;
+  padding: 2px 8px;
+  letter-spacing: 0.08em;
+}
+
+.confirm-btn {
+  --background: var(--ion-color-primary);
+  --color: #000;
+  --border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0;
+}

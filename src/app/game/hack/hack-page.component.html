@@ -1,0 +1,185 @@
+<ion-header class="uplink-header" [translucent]="false">
+  <div class="uplink-bar">
+    <button class="ub-close dg-text-red" (click)="connected ? disconnect() : goToJobBoard()">✕</button>
+    <span class="ub-ip dg-text-cyan">IP: {{ targetIp || '---' }}</span>
+    <span class="ub-timer dg-text-dim" *ngIf="connected">{{ connTimeLabel }}</span>
+    <div class="ub-trace" *ngIf="contract">
+      <span class="dg-text-dim ub-trace-lbl">0</span>
+      <div class="ub-trace-ruler">
+        <div class="ub-trace-fill"
+             [style.width.%]="traceState.progress"
+             [class.fill-safe]="traceState.progress < 40"
+             [class.fill-warn]="traceState.progress >= 40 && traceState.progress < 75"
+             [class.fill-danger]="traceState.progress >= 75"></div>
+        <div class="ub-trace-cursor"
+             [style.left.%]="traceState.progress"
+             [class.cursor-safe]="traceState.progress < 40"
+             [class.cursor-warn]="traceState.progress >= 40 && traceState.progress < 75"
+             [class.cursor-danger]="traceState.progress >= 75">|</div>
+      </div>
+      <span class="dg-text-dim ub-trace-lbl">100</span>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="dg-scanlines hack-content">
+  <ng-container *ngIf="contract; else noContract">
+    <div class="hack-layout">
+
+      <!-- TOP: pinned topology + mission info -->
+      <div class="top-panel">
+
+        <!-- CONNECTION ANALYSER -->
+        <app-network-topology
+          class="topo-anchor"
+          [routeNodes]="routeNodes"
+          [currentStage]="currentStage"
+          [routeProgress]="routeProgress"
+          [traceProgress]="displayTraceProgress"
+          [connected]="connected"
+          [toolRunning]="toolRunning">
+        </app-network-topology>
+
+        <!-- TARGET SYSTEM INFO + STAGE -->
+        <div class="top-right">
+          <div class="target-card dg-glass">
+            <span class="section-label dg-text-dim">TARGET SYSTEM</span>
+            <div class="target-name dg-text-cyan">{{ contract.title }}</div>
+            <div class="target-ip dg-text-dim">{{ targetIp }}</div>
+            <div class="target-sec dg-text-amber" [class.dg-text-red]="contract.difficulty >= 7">
+              SEC-{{ contract.difficulty }}/10
+            </div>
+            <div class="target-desc dg-text-dim">{{ contract.description }}</div>
+            <div class="target-payout dg-text-green">ℂ{{ contract.payout | number }}</div>
+          </div>
+
+          <!-- STAGE PIPELINE -->
+          <div class="stage-card dg-glass" *ngIf="connected">
+            <div class="stage-pip" [class.pip-done]="currentStage > 1" [class.pip-now]="currentStage === 1" [class.pip-wait]="currentStage < 1">
+              {{ currentStage > 1 ? '■' : '▶' }} ENTRY
+            </div>
+            <div class="stage-arrow dg-text-dim">↓</div>
+            <div class="stage-pip" [class.pip-done]="currentStage > 2" [class.pip-now]="currentStage === 2" [class.pip-wait]="currentStage < 2">
+              {{ currentStage > 2 ? '■' : (currentStage === 2 ? '▶' : '□') }} AUTH
+            </div>
+            <div class="stage-arrow dg-text-dim">↓</div>
+            <div class="stage-pip" [class.pip-done]="currentStage > 3" [class.pip-now]="currentStage === 3" [class.pip-wait]="currentStage < 3">
+              {{ currentStage > 3 ? '■' : (currentStage === 3 ? '▶' : '□') }} LOG
+            </div>
+            <div class="stage-arrow dg-text-dim">↓</div>
+            <div class="stage-pip" [class.pip-done]="currentStage > 4" [class.pip-now]="currentStage === 4" [class.pip-wait]="currentStage < 4">
+              {{ currentStage === 4 ? '▶' : '□' }} OBJ
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /top-panel -->
+
+      <!-- BOTTOM: scrollable mission actions -->
+      <div class="scroll-panel">
+
+        <!-- OBJECTIVE BAR -->
+      <div class="objective-card dg-glass" [class.obj-danger]="traceState.progress >= 75">
+        <div class="objective-text"
+             [class.dg-text-cyan]="traceState.progress < 75"
+             [class.dg-text-red]="traceState.progress >= 75">
+          ▶ {{ currentObjective }}
+        </div>
+      </div>
+
+      <!-- ACTIVE TOOL PROGRESS -->
+      <div class="running-card dg-glass" *ngIf="toolRunning">
+        <div class="running-header">
+          <span class="running-name dg-text-cyan">{{ runningToolName }}</span>
+          <span class="running-pct dg-text-dim">{{ toolProgress | number:'1.0-0' }}%</span>
+        </div>
+        <div class="running-bar-bg">
+          <div class="running-bar-fill" [style.width.%]="toolProgress"></div>
+        </div>
+      </div>
+
+      <!-- SOFTWARE LIST -->
+      <div class="sw-card dg-glass">
+        <span class="section-label dg-text-dim">// INSTALLED SOFTWARE</span>
+        <div *ngFor="let t of tools" class="sw-row"
+             [class.sw-running]="activeToolId === t.id"
+             [class.sw-locked]="!canRun(t) && activeToolId !== t.id">
+          <div class="sw-info">
+            <span class="sw-name dg-text-cyan">{{ t.name }}</span>
+            <span class="sw-ver dg-text-dim"> {{ t.version }}</span>
+            <div class="sw-desc dg-text-dim">{{ t.description }}</div>
+          </div>
+          <button class="sw-btn"
+                  [class.sw-btn-ready]="canRun(t)"
+                  [disabled]="!canRun(t)"
+                  (click)="runTool(t)">
+            {{ activeToolId === t.id ? 'RUNNING' : canRun(t) ? 'RUN' : '—' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- PUZZLE CHALLENGE (puzzle contracts only, stage 4) -->
+      <div class="puzzle-card dg-glass"
+           *ngIf="hasPuzzle && currentStage === 4"
+           [class.puzzle-solved]="puzzleSolved">
+
+        <span class="section-label dg-text-dim">
+          {{ puzzleSolved ? '// ACCESS CODE ACCEPTED' : '// ACCESS CODE REQUIRED' }}
+        </span>
+
+        <ng-container *ngIf="!puzzleSolved">
+          <p class="puzzle-hint dg-text-dim">
+            Analyse the mission briefing. Enter the answer to unlock the objective.
+          </p>
+          <div class="puzzle-input-row">
+            <input class="puzzle-input"
+                   type="text"
+                   [(ngModel)]="puzzleInput"
+                   placeholder="enter code..."
+                   [class.input-error]="puzzleError"
+                   (keyup.enter)="checkPuzzle()"
+                   autocomplete="off"
+                   spellcheck="false" />
+            <button class="puzzle-check-btn" (click)="checkPuzzle()">CHECK</button>
+          </div>
+          <p class="puzzle-error-msg dg-text-red" *ngIf="puzzleError">
+            ✗ Incorrect — check the briefing again.
+          </p>
+        </ng-container>
+
+        <p class="puzzle-ok-msg dg-text-green" *ngIf="puzzleSolved">
+          ✔ Verified — execute the payload now.
+        </p>
+
+      </div>
+
+      <!-- STATUS LOG -->
+      <div class="log-card dg-glass">
+        <span class="section-label dg-text-dim">// STATUS LOG</span>
+        <div class="log-entries">
+          <div *ngFor="let entry of statusLog" class="log-entry dg-text-dim">{{ entry }}</div>
+        </div>
+      </div>
+
+      </div><!-- /scroll-panel -->
+
+    </div><!-- /hack-layout -->
+  </ng-container>
+
+  <ng-template #noContract>
+    <div class="no-contract dg-glass">
+      <p class="dg-text-red" style="font-size:0.82rem;letter-spacing:.1em;">// ERROR: NO CONTRACT LOADED</p>
+      <ion-button expand="block" fill="outline" (click)="goToJobBoard()">BACK TO JOB BOARD</ion-button>
+    </div>
+  </ng-template>
+</ion-content>
+
+<!-- Fixed bottom button — position:fixed always works regardless of Ionic footer quirks -->
+<div class="fixed-action-bar" *ngIf="contract">
+  <ion-button expand="block" class="connect-btn" *ngIf="!connected" (click)="connect()">
+    ▶ CONNECT TO TARGET
+  </ion-button>
+  <ion-button expand="block" color="danger" fill="outline" *ngIf="connected" (click)="disconnect()">
+    ■ DISCONNECT
+  </ion-button>
+</div>

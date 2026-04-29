@@ -1,0 +1,55 @@
+import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { GameState, RigStats, SoftwareItem } from '../../core/models/game.models';
+import { selectRig, selectOwnedSoftware, selectCredits } from '../../core/store/game.selectors';
+import { EconomyService } from '../../core/services/economy.service';
+import * as GameActions from '../../core/store/game.actions';
+
+interface UpgradeOption { stat: keyof RigStats; label: string; description: string; costPerLevel: number; }
+
+@Component({
+  selector: 'app-rig-page',
+  templateUrl: './rig-page.component.html',
+  styleUrls: ['./rig-page.component.scss'],
+  standalone: false
+})
+export class RigPageComponent implements OnInit {
+  rig$!: Observable<RigStats>;
+  software$!: Observable<SoftwareItem[]>;
+  credits$!: Observable<number>;
+
+  upgrades: UpgradeOption[] = [
+    { stat: 'cpu',       label: 'CPU',       description: 'Extends puzzle timer window',           costPerLevel: 800  },
+    { stat: 'ram',       label: 'RAM',       description: 'Additional simultaneous tool slots',    costPerLevel: 1200 },
+    { stat: 'bandwidth', label: 'BANDWIDTH', description: 'Reduces trace accumulation rate',       costPerLevel: 1500 }
+  ];
+
+  constructor(
+    private store: Store<{ game: GameState }>,
+    private economy: EconomyService
+  ) {}
+
+  ngOnInit(): void {
+    this.rig$      = this.store.select(selectRig);
+    this.software$ = this.store.select(selectOwnedSoftware);
+    this.credits$  = this.store.select(selectCredits);
+  }
+
+  upgradeStat(stat: keyof RigStats, currentValue: number, costPerLevel: number): void {
+    if (currentValue >= 10) return;
+    const cost = costPerLevel * currentValue;
+    const spent = this.economy.spend(cost, `Upgrade ${stat}`);
+    if (spent) {
+      this.store.dispatch(GameActions.upgradeRig({ stat, newValue: currentValue + 1 }));
+    }
+  }
+
+  upgradeCost(currentValue: number, costPerLevel: number): number {
+    return costPerLevel * currentValue;
+  }
+
+  toggleSoftware(id: string): void {
+    this.store.dispatch(GameActions.toggleSoftware({ itemId: id }));
+  }
+}

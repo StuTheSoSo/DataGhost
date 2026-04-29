@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/hub"></ion-back-button></ion-buttons>
+    <ion-title class="dg-text-cyan">// FACTIONS</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="dg-scanlines">
+  <div class="factions-container">
+    <div *ngFor="let f of factions$ | async" class="faction-card dg-glass">
+      <div class="faction-header">
+        <ion-icon [name]="meta(f.factionId).icon" class="faction-icon dg-text-cyan"></ion-icon>
+        <span class="faction-name dg-text-cyan">{{ meta(f.factionId).label }}</span>
+        <ion-badge [color]="repColor(f.score)" class="rep-badge">{{ faction.getTier(f.factionId) }}</ion-badge>
+      </div>
+      <p class="faction-desc dg-text-dim">{{ meta(f.factionId).description }}</p>
+      <div class="rep-row">
+        <span class="rep-label dg-text-dim">REPUTATION</span>
+        <ion-progress-bar [value]="(f.score + 100) / 200" [color]="repColor(f.score)"></ion-progress-bar>
+        <span class="rep-score" [class.dg-text-green]="f.score > 0" [class.dg-text-red]="f.score < 0" [class.dg-text-dim]="f.score === 0">{{ f.score }}</span>
+      </div>
+    </div>
+  </div>
+</ion-content>

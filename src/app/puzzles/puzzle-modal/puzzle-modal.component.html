@@ -1,0 +1,70 @@
+<div class="puzzle-wrapper dg-scanlines">
+  <!-- Timer bar -->
+  <div class="timer-bar">
+    <ion-progress-bar [value]="timeLeft / 60" [color]="timerColor"></ion-progress-bar>
+    <span class="timer-num" [class.dg-text-red]="timeLeft <= 10"
+          [class.dg-text-amber]="timeLeft > 10 && timeLeft <= 20"
+          [class.dg-text-cyan]="timeLeft > 20">
+      {{ timeLeft }}s
+    </span>
+  </div>
+
+  <!-- Stage Briefing (if provided) -->
+  <div class="stage-briefing dg-glass" *ngIf="stageLabel">
+    <div class="stage-header">
+      <span class="stage-label dg-text-cyan">{{ stageLabel }}</span>
+      <span class="stage-type dg-text-dim">// {{ puzzleType | uppercase }}</span>
+    </div>
+    <p class="stage-desc dg-text-dim">{{ stageDescription }}</p>
+  </div>
+
+  <!-- Puzzle type label (if no stage info) -->
+  <div class="puzzle-type-label dg-text-dim" *ngIf="!stageLabel">// {{ puzzleType | uppercase }}</div>
+
+  <!-- Route to correct sub-puzzle -->
+  <app-cipher-puzzle
+    *ngIf="puzzleType === PuzzleType.CipherDecode"
+    [difficulty]="difficulty"
+    (result)="onPuzzleResult($event)">
+  </app-cipher-puzzle>
+
+  <app-network-topology-puzzle
+    *ngIf="puzzleType === PuzzleType.NetworkTopology"
+    [difficulty]="difficulty"
+    (result)="onPuzzleResult($event)">
+  </app-network-topology-puzzle>
+
+  <app-pattern-intrusion-puzzle
+    *ngIf="puzzleType === PuzzleType.PatternIntrusion"
+    [difficulty]="difficulty"
+    (result)="onPuzzleResult($event)">
+  </app-pattern-intrusion-puzzle>
+
+  <app-binary-hex-puzzle
+    *ngIf="puzzleType === PuzzleType.BinaryHexDecode"
+    [difficulty]="difficulty"
+    (result)="onPuzzleResult($event)">
+  </app-binary-hex-puzzle>
+
+  <app-social-engineering-puzzle
+    *ngIf="puzzleType === PuzzleType.SocialEngineering"
+    [difficulty]="difficulty"
+    (result)="onPuzzleResult($event)">
+  </app-social-engineering-puzzle>
+
+  <app-filesystem-traverse-puzzle
+    *ngIf="puzzleType === PuzzleType.FilesystemTraverse"
+    [difficulty]="difficulty"
+    (result)="onPuzzleResult($event)">
+  </app-filesystem-traverse-puzzle>
+
+  <app-password-cascade-puzzle
+    *ngIf="puzzleType === PuzzleType.PasswordCascade"
+    [difficulty]="difficulty"
+    (result)="onPuzzleResult($event)">
+  </app-password-cascade-puzzle>
+
+  <ion-button fill="clear" size="small" class="abort-btn dg-text-dim" (click)="dismiss(false)">
+    ABORT
+  </ion-button>
+</div>

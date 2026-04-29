@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/hub"></ion-back-button></ion-buttons>
+    <ion-title class="dg-text-cyan">// SETTINGS</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="dg-scanlines">
+  <div class="settings-container">
+
+    <div class="setting-card dg-glass">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-name dg-text-cyan">AD-FREE MODE</span>
+          <span class="setting-desc dg-text-dim">Remove all banner advertisements.</span>
+        </div>
+        <ion-badge [color]="(isAdFree$ | async) ? 'secondary' : 'medium'">
+          {{ (isAdFree$ | async) ? 'ACTIVE' : 'INACTIVE' }}
+        </ion-badge>
+      </div>
+      <ion-button *ngIf="!(isAdFree$ | async)" expand="block" (click)="goAdFree()" class="buy-btn">
+        GO AD-FREE
+      </ion-button>
+      <ion-button *ngIf="!(isAdFree$ | async)" expand="block" fill="outline" (click)="restore()" class="restore-btn">
+        RESTORE PURCHASES
+      </ion-button>
+    </div>
+
+    <div class="setting-card dg-glass">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-name dg-text-cyan">VERSION</span>
+          <span class="setting-desc dg-text-dim">DataGhost v1.0.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-card dg-glass">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-name dg-text-cyan">TUTORIAL</span>
+          <span class="setting-desc dg-text-dim">Replay world intro and onboarding prompts from identity, hub, and job board.</span>
+        </div>
+      </div>
+      <ion-button expand="block" fill="outline" class="reset-btn" (click)="resetTutorials()">
+        RESET TUTORIALS
+      </ion-button>
+      <span class="reset-note dg-text-green" *ngIf="tutorialResetNotice">Tutorial progress reset.</span>
+    </div>
+
+  </div>
+</ion-content>
+

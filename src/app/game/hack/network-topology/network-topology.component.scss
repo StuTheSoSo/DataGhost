@@ -1,0 +1,143 @@
+:host { display: block; }
+
+.topology-wrap {
+  padding: 12px 14px 10px;
+  min-height: 120px;
+  overflow: visible;
+}
+
+.topo-label {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+
+.topology-svg {
+  width: 100%;
+  height: auto;
+  min-height: 180px;
+  max-height: 300px;
+  display: block;
+  overflow: visible;
+}
+
+/* ── Grid ── */
+.grid-line {
+  stroke: rgba(200, 214, 229, 0.04);
+  stroke-width: 1;
+}
+
+/* ── Base route — dots, matching original Uplink ── */
+.route-base {
+  stroke: rgba(0, 229, 255, 0.25);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+
+/* ── Trace overlay ── */
+.trace-line {
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* no transition by default — only animate while a tool is running */
+
+  &.trace-safe   { stroke: #00e5ff; filter: drop-shadow(0 0 4px rgba(0,229,255,0.7)); }
+  &.trace-warn   { stroke: #ffb300; filter: drop-shadow(0 0 4px rgba(255,179,0,0.7)); }
+  &.trace-danger { stroke: #ff3d5a; filter: drop-shadow(0 0 6px rgba(255,61,90,0.8)); }
+}
+:host.topo-running .trace-line {
+  transition: stroke-dashoffset 0.3s linear;
+}
+
+/* ── Node shapes (monitor rect + diamond polygon) ── */
+.node-shape {
+  stroke-width: 1.5;
+
+  &.node-off     { stroke: rgba(0, 229, 255, 0.3); fill: rgba(0,229,255,0.04); }
+  &.node-pending { stroke: rgba(0, 229, 255, 0.25); fill: rgba(0,0,0,0.3); }
+  &.node-done    { stroke: #00ff88; fill: rgba(0,255,136,0.1); }
+  &.node-active  {
+    stroke: #00e5ff;
+    fill: rgba(0,229,255,0.15);
+    filter: drop-shadow(0 0 6px rgba(0,229,255,0.5));
+  }
+}
+
+.node-diamond {
+  &.node-active { filter: drop-shadow(0 0 8px rgba(0,229,255,0.6)); }
+}
+
+.node-stand {
+  stroke-width: 1;
+
+  &.node-off     { stroke: rgba(0,229,255,0.2);  fill: rgba(0,229,255,0.04); }
+  &.node-pending { stroke: rgba(0,229,255,0.2);  fill: rgba(0,0,0,0.3); }
+  &.node-done    { stroke: #00ff88;              fill: rgba(0,255,136,0.1); }
+  &.node-active  { stroke: #00e5ff;              fill: rgba(0,229,255,0.15); }
+}
+
+.screen-glow {
+  fill: rgba(0,229,255,0.12);
+  stroke: none;
+}
+:host.topo-running .screen-glow {
+  animation: screen-pulse 1s ease-in-out infinite;
+}
+
+.proxy-icon {
+  font-size: 7px;
+  fill: rgba(0,229,255,0.35);
+  pointer-events: none;
+  &.icon-active { fill: #00e5ff; }
+  &.icon-done   { fill: #00ff88; }
+}
+
+/* Animated glow ring behind active node — only animates while a tool runs */
+.node-glow {
+  fill: none;
+  stroke: rgba(0,229,255,0.25);
+  stroke-width: 1;
+}
+:host.topo-running .node-glow {
+  animation: ring-pulse 1.2s ease-in-out infinite;
+}
+
+/* ── Node labels ── */
+.node-label {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 7px;
+  fill: rgba(0, 229, 255, 0.45);
+  letter-spacing: 0.08em;
+  font-weight: 700;
+
+  &.label-active { fill: #00e5ff; }
+  &.label-done   { fill: #00ff88; }
+}
+
+/* ── Trace-head dot ── */
+.trace-head {
+  &.head-safe   { fill: #00e5ff; filter: drop-shadow(0 0 5px rgba(0,229,255,0.9)); }
+  &.head-warn   { fill: #ffb300; filter: drop-shadow(0 0 5px rgba(255,179,0,0.9)); }
+  &.head-danger { fill: #ff3d5a; filter: drop-shadow(0 0 7px rgba(255,61,90,1)); }
+}
+:host.topo-running .trace-head {
+  animation: head-blink 0.5s ease-in-out infinite;
+}
+
+/* ── Animations ── */
+@keyframes ring-pulse {
+  0%, 100% { r: 15; opacity: 0.6; }
+  50%       { r: 20; opacity: 0.1; }
+}
+
+@keyframes head-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes screen-pulse {
+  0%, 100% { opacity: 0.8; }
+  50%       { opacity: 0.3; }
+}

@@ -1,0 +1,155 @@
+:host { display: block; }
+
+.tutorial-panel {
+  margin: 12px 12px 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 179, 0, 0.35);
+  background: rgba(255, 179, 0, 0.05);
+
+  ion-button {
+    --border-color: rgba(255, 179, 0, 0.45);
+    --color: var(--ion-color-warning);
+    --border-radius: 4px;
+    margin: 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+  }
+}
+
+.tutorial-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.tutorial-copy {
+  margin: 0 0 10px;
+  font-size: 0.73rem;
+  line-height: 1.45;
+}
+
+.contract-list {
+  padding: 12px 12px 120px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: transparent;
+}
+
+.contract-item {
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, opacity 0.2s;
+
+  &.selected {
+    border-color: var(--ion-color-primary);
+  }
+
+  &.contract-locked {
+    opacity: 0.3;
+    pointer-events: none;
+    cursor: default;
+  }
+}
+
+.contract-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.type-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+.contract-title {
+  flex: 1;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--ion-text-color);
+}
+
+.payout {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.contract-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.time-limit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.difficulty-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diff-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  width: 30px;
+}
+
+.diff-bar {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.pip {
+  height: 6px;
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+
+  &.active {
+    background: var(--ion-color-primary);
+  }
+}
+
+.diff-num {
+  font-size: 0.65rem;
+  width: 30px;
+  text-align: right;
+}
+
+.contract-details {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ion-border-color);
+}
+
+.desc {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+
+.accept-btn {
+  --background: var(--ion-color-primary);
+  --color: #000;
+  --border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}

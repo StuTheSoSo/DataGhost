@@ -1,0 +1,70 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/hub"></ion-back-button>
+    </ion-buttons>
+    <ion-title class="dg-text-cyan">// JOB BOARD</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dg-scanlines">
+  <div class="dg-glass tutorial-panel" *ngIf="showTutorial">
+    <div class="tutorial-title dg-text-amber">TUTORIAL // CONTRACT PICKUP</div>
+    <p class="tutorial-copy dg-text-dim">Tap a contract to inspect details. Higher difficulty pays more, but trace rises faster during intrusion.</p>
+    <ion-button size="small" fill="outline" (click)="dismissTutorial()">GOT IT</ion-button>
+  </div>
+
+  <ion-list lines="none" class="contract-list">
+    <ng-container *ngIf="sortedContracts$ | async as sortedContracts">
+      <div
+        *ngFor="let c of sortedContracts"
+        class="contract-item dg-glass"
+        [class.selected]="selectedContract?.id === c.id"
+        [class.contract-locked]="firstContactActive && c.title !== 'First Contact — Prove Your Chops'"
+        (click)="select(c, firstContactActive)">
+
+          <div class="contract-header">
+            <ion-icon [name]="typeIcon(c.type)" class="type-icon dg-text-cyan"></ion-icon>
+            <span class="contract-title">{{ c.title }}</span>
+            <span class="payout dg-text-green">ℂ{{ c.payout | number }}</span>
+          </div>
+
+          <div class="contract-meta">
+            <span class="faction-tag dg-text-dim" *ngIf="c.factionAffiliation">
+              [{{ c.factionAffiliation | uppercase }}]
+            </span>
+            <span class="time-limit dg-text-amber">
+              <ion-icon name="timer-outline"></ion-icon>{{ timeLabel(c.timeLimit) }}
+            </span>
+          </div>
+
+          <!-- Difficulty bar -->
+          <div class="difficulty-row">
+            <span class="diff-label dg-text-dim">DIFF</span>
+            <div class="diff-bar">
+              <span
+                *ngFor="let pip of difficultyBar(c.difficulty); let i = index"
+                class="pip"
+                [class.active]="pip === 1">
+              </span>
+            </div>
+            <span class="diff-num dg-text-dim">{{ c.difficulty }}/10</span>
+          </div>
+
+          <!-- Expanded details -->
+          <div class="contract-details" *ngIf="selectedContract?.id === c.id">
+            <p class="desc dg-text-dim">{{ c.description }}</p>
+            <ion-button expand="block" class="accept-btn" (click)="accept(); $event.stopPropagation()">
+              ACCEPT CONTRACT
+            </ion-button>
+          </div>
+
+        </div>
+      </ng-container>
+  </ion-list>
+
+  <div class="empty-state" *ngIf="(contracts$ | async)?.length === 0">
+    <p class="dg-text-dim">// NO CONTRACTS AVAILABLE</p>
+    <p class="dg-text-dim">Check back later or increase faction reputation.</p>
+  </div>
+</ion-content>

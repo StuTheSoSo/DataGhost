@@ -1,0 +1,66 @@
+.puzzle-wrapper {
+  background: #0a0c10;
+  min-height: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timer-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  ion-progress-bar { flex: 1; height: 6px; border-radius: 3px; }
+}
+
+.timer-num {
+  font-size: 0.85rem;
+  font-weight: 700;
+  width: 32px;
+  text-align: right;
+}
+
+.stage-briefing {
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  background: rgba(0, 229, 255, 0.05);
+
+  .stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 12px;
+  }
+
+  .stage-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+  }
+
+  .stage-type {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
+
+  .stage-desc {
+    font-size: 0.72rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.puzzle-type-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+}
+
+.abort-btn {
+  margin-top: auto;
+  --color: var(--ion-color-medium);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}

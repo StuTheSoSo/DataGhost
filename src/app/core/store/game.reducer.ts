@@ -1,0 +1,166 @@
+import { createReducer, on } from '@ngrx/store';
+import { GameState, initialGameState, ContractStatus, StoryAct } from '../models/game.models';
+import * as GameActions from './game.actions';
+
+export const gameReducer = createReducer(
+  initialGameState,
+
+  // ── Init ─────────────────────────────────────────────────
+  on(GameActions.loadSavedGameSuccess, (state, { state: saved }) => ({
+    ...state,
+    ...saved,
+    initialized: true
+  })),
+  on(GameActions.loadSavedGameFailure, (state) => ({
+    ...state,
+    initialized: true
+  })),
+
+  // ── Identity ─────────────────────────────────────────────
+  on(GameActions.setPlayerIdentity, (state, { player }) => ({
+    ...state,
+    player,
+    initialized: true,
+    currentAct: StoryAct.Act1,
+    currentChapter: 1
+  })),
+
+  // ── Economy ──────────────────────────────────────────────
+  on(GameActions.earnCredits, (state, { amount }) => ({
+    ...state,
+    credits: state.credits + amount,
+    totalCreditsEarned: state.totalCreditsEarned + amount
+  })),
+  on(GameActions.spendCredits, (state, { amount }) => ({
+    ...state,
+    credits: Math.max(0, state.credits - amount)
+  })),
+
+  // ── Contracts ────────────────────────────────────────────
+  on(GameActions.setContracts, (state, { contracts }) => ({
+    ...state,
+    contracts
+  })),
+  on(GameActions.startContract, (state, { contractId }) => ({
+    ...state,
+    activeContractId: contractId,
+    contracts: state.contracts.map(c =>
+      c.id === contractId ? { ...c, status: ContractStatus.Active } : c
+    )
+  })),
+  on(GameActions.completeContract, (state, { contractId }) => ({
+    ...state,
+    activeContractId: state.activeContractId === contractId ? null : state.activeContractId,
+    contracts: state.contracts.map(c =>
+      c.id === contractId ? { ...c, status: ContractStatus.Completed } : c
+    ),
+    contractsCompleted: state.contractsCompleted + 1
+  })),
+  on(GameActions.failContract, (state, { contractId }) => ({
+    ...state,
+    activeContractId: state.activeContractId === contractId ? null : state.activeContractId,
+    contracts: state.contracts.map(c =>
+      c.id === contractId ? { ...c, status: ContractStatus.Failed } : c
+    )
+  })),
+  on(GameActions.expireContracts, (state) => {
+    const now = Date.now();
+    return {
+      ...state,
+      contracts: state.contracts.map(c =>
+        c.status === ContractStatus.Available && c.expiresAt && c.expiresAt < now
+          ? { ...c, status: ContractStatus.Expired }
+          : c
+      )
+    };
+  }),
+
+  // ── Faction ──────────────────────────────────────────────
+  on(GameActions.adjustReputation, (state, { factionId, delta }) => ({
+    ...state,
+    factionReputations: {
+      ...state.factionReputations,
+      [factionId]: {
+        ...state.factionReputations[factionId],
+        score: Math.min(100, Math.max(-100,
+          state.factionReputations[factionId].score + delta
+        ))
+      }
+    }
+  })),
+  on(GameActions.revealFaction, (state, { factionId }) => ({
+    ...state,
+    factionReputations: {
+      ...state.factionReputations,
+      [factionId]: { ...state.factionReputations[factionId], revealed: true }
+    }
+  })),
+
+  // ── Rig ──────────────────────────────────────────────────
+  on(GameActions.upgradeRig, (state, { stat, newValue }) => ({
+    ...state,
+    rig: { ...state.rig, [stat]: Math.min(10, newValue) }
+  })),
+  on(GameActions.acquireSoftware, (state, { item }) => ({
+    ...state,
+    ownedSoftware: [...state.ownedSoftware, item]
+  })),
+  on(GameActions.toggleSoftware, (state, { itemId }) => ({
+    ...state,
+    ownedSoftware: state.ownedSoftware.map(s =>
+      s.id === itemId ? { ...s, equipped: !s.equipped } : s
+    )
+  })),
+
+  // ── Nodes ────────────────────────────────────────────────
+  on(GameActions.acquireNode, (state, { node }) => ({
+    ...state,
+    ownedNodes: [...state.ownedNodes, { ...node, owned: true }]
+  })),
+  on(GameActions.setActiveRoute, (state, { nodeIds }) => ({
+    ...state,
+    activeRouteNodeIds: nodeIds
+  })),
+
+  // ── Story ────────────────────────────────────────────────
+  on(GameActions.setStoryFlag, (state, { key, value }) => ({
+    ...state,
+    storyFlags: {
+      ...state.storyFlags,
+      [key]: { key, value, setAt: Date.now() }
+    }
+  })),
+  on(GameActions.advanceChapter, (state, { chapter, act }) => ({
+    ...state,
+    currentChapter: chapter,
+    currentAct: act
+  })),
+  on(GameActions.setEnding, (state, { ending }) => ({
+    ...state,
+    ending
+  })),
+
+  // ── Inbox ────────────────────────────────────────────────
+  on(GameActions.addMessage, (state, { message }) => ({
+    ...state,
+    inbox: [message, ...state.inbox]
+  })),
+  on(GameActions.markMessageRead, (state, { messageId }) => ({
+    ...state,
+    inbox: state.inbox.map(m =>
+      m.id === messageId ? { ...m, read: true } : m
+    )
+  })),
+
+  // ── Monetization ─────────────────────────────────────────
+  on(GameActions.setAdFree, (state, { adFree }) => ({
+    ...state,
+    isAdFree: adFree
+  })),
+
+  // ── Persistence ──────────────────────────────────────────
+  on(GameActions.gameSaved, (state, { timestamp }) => ({
+    ...state,
+    lastSavedAt: timestamp
+  }))
+);

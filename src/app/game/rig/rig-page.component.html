@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/hub"></ion-back-button></ion-buttons>
+    <ion-title class="dg-text-cyan">// RIG</ion-title>
+    <ion-note slot="end" class="credits-note dg-text-green" *ngIf="credits$ | async as c">ℂ{{ c | number }}</ion-note>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dg-scanlines" *ngIf="rig$ | async as rig">
+  <div class="rig-container">
+
+    <!-- Hardware upgrades -->
+    <h2 class="section-label dg-text-dim">// HARDWARE</h2>
+    <div *ngFor="let u of upgrades" class="upgrade-row dg-glass">
+      <div class="upgrade-info">
+        <span class="upgrade-name dg-text-cyan">{{ u.label }}</span>
+        <span class="upgrade-desc dg-text-dim">{{ u.description }}</span>
+      </div>
+      <div class="upgrade-level">
+        <div class="level-pips">
+          <span *ngFor="let pip of [1,2,3,4,5,6,7,8,9,10]; let i = index"
+                class="pip" [class.active]="i < rig[u.stat]"></span>
+        </div>
+        <span class="level-num dg-text-dim">{{ rig[u.stat] }}/10</span>
+      </div>
+      <ion-button size="small"
+                  [disabled]="rig[u.stat] >= 10"
+                  (click)="upgradeStat(u.stat, rig[u.stat], u.costPerLevel)">
+        ℂ{{ upgradeCost(rig[u.stat], u.costPerLevel) | number }}
+      </ion-button>
+    </div>
+
+    <!-- Software inventory -->
+    <h2 class="section-label dg-text-dim">// SOFTWARE</h2>
+    <ng-container *ngIf="software$ | async as software">
+      <div *ngFor="let s of software" class="software-row dg-glass"
+           [class.equipped]="s.equipped" (click)="toggleSoftware(s.id)">
+        <div class="sw-info">
+          <span class="sw-name" [class.dg-text-green]="s.equipped" [class.dg-text-dim]="!s.equipped">{{ s.name }}</span>
+          <span class="sw-type dg-text-dim">{{ s.type | uppercase }}</span>
+        </div>
+        <ion-icon [name]="s.equipped ? 'checkmark-circle' : 'ellipse-outline'"
+                  [class.dg-text-green]="s.equipped" [class.dg-text-dim]="!s.equipped">
+        </ion-icon>
+      </div>
+      <div *ngIf="!software.length" class="empty-state dg-text-dim">No software installed.</div>
+    </ng-container>
+
+  </div>
+</ion-content>
