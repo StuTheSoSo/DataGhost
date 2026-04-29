@@ -119,6 +119,7 @@ export interface Contract {
   puzzleAnswer?: string;
   isStoryMission: boolean;
   chapterRequirement: number | null;
+  storyFlag?: string;
   expiresAt: number | null; // unix ms
 }
 

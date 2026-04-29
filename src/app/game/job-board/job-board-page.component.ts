@@ -4,7 +4,7 @@ import { Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { GameState, Contract, ContractType } from '../../core/models/game.models';
-import { selectAvailableContracts } from '../../core/store/game.selectors';
+import { selectAvailableContracts, selectCurrentChapter } from '../../core/store/game.selectors';
 import * as GameActions from '../../core/store/game.actions';
 import { TutorialService } from '../../core/services/tutorial.service';
 import { CurrentContractService } from '../../core/services/current-contract.service';
@@ -19,6 +19,8 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
   contracts$!: Observable<Contract[]>;
   sortedContracts$!: Observable<Contract[]>;
   firstContactAvailable$!: Observable<boolean>;
+  chapter$!: Observable<number>;
+  currentChapter = 1;
   firstContactActive = false;
   selectedContract: Contract | null = null;
   showTutorial = false;
@@ -38,10 +40,12 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.contracts$ = this.store.select(selectAvailableContracts);
+    this.chapter$ = this.store.select(selectCurrentChapter);
     this.sortedContracts$ = this.contracts$.pipe(
       map(cs => [
         ...cs.filter(c => JobBoardPageComponent.isFirstContact(c)),
-        ...cs.filter(c => !JobBoardPageComponent.isFirstContact(c))
+        ...cs.filter(c => c.isStoryMission && !JobBoardPageComponent.isFirstContact(c)),
+        ...cs.filter(c => !c.isStoryMission && !JobBoardPageComponent.isFirstContact(c))
       ])
     );
     this.firstContactAvailable$ = this.contracts$.pipe(
@@ -49,6 +53,9 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
     );
     this.subs.add(
       this.firstContactAvailable$.subscribe(value => this.firstContactActive = value)
+    );
+    this.subs.add(
+      this.chapter$.subscribe(value => this.currentChapter = value)
     );
   }
 
@@ -74,8 +81,13 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
     this.selectedContract = this.selectedContract?.id === contract.id ? null : contract;
   }
 
+  contractLocked(contract: Contract): boolean {
+    if (this.firstContactActive && !JobBoardPageComponent.isFirstContact(contract)) return true;
+    return !!contract.chapterRequirement && this.currentChapter < contract.chapterRequirement;
+  }
+
   accept(): void {
-    if (!this.selectedContract) return;
+    if (!this.selectedContract || this.contractLocked(this.selectedContract)) return;
     this.store.dispatch(GameActions.startContract({ contractId: this.selectedContract.id }));
     this.currentContract.contract = this.selectedContract;
     this.router.navigate(['/hack', this.selectedContract.id]);

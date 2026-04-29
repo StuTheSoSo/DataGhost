@@ -54,7 +54,8 @@ export const gameReducer = createReducer(
     contracts: state.contracts.map(c =>
       c.id === contractId ? { ...c, status: ContractStatus.Completed } : c
     ),
-    contractsCompleted: state.contractsCompleted + 1
+    contractsCompleted: state.contractsCompleted + 1,
+    currentChapter: state.currentChapter + 1
   })),
   on(GameActions.failContract, (state, { contractId }) => ({
     ...state,

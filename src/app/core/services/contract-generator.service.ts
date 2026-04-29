@@ -25,6 +25,41 @@ const PUZZLE_FOR_TYPE: Record<ContractType, PuzzleType> = {
   [ContractType.SocialEngineering]: PuzzleType.SocialEngineering
 };
 
+const STORY_MISSIONS: Array<Omit<Contract, 'id' | 'status' | 'expiresAt'>> = [
+  {
+    title: 'Signal Source — Vector Trace',
+    description:
+      'A suspicious connection left a faint signature in the relay chain. Trace the source and confirm whether the contact is friend or foe.',
+    type: ContractType.AccountAccess,
+    difficulty: 3,
+    payout: 2200,
+    factionAffiliation: FactionId.DataGhost,
+    repEffects: { [FactionId.DataGhost]: 3 },
+    timeLimit: null,
+    puzzleType: PuzzleType.PatternIntrusion,
+    puzzleAnswer: undefined,
+    isStoryMission: true,
+    chapterRequirement: 4,
+    storyFlag: 'act1_signal_found'
+  },
+  {
+    title: 'Helios Probe — Confirm the Leak',
+    description:
+      'Helios intel points to a compromised facility. Get in, validate the leak, and leave a clean trail. This is not a paycheck — it is proof.',
+    type: ContractType.DataTheft,
+    difficulty: 5,
+    payout: 4200,
+    factionAffiliation: FactionId.Helios,
+    repEffects: { [FactionId.Helios]: 3 },
+    timeLimit: null,
+    puzzleType: PuzzleType.CipherDecode,
+    puzzleAnswer: undefined,
+    isStoryMission: true,
+    chapterRequirement: 9,
+    storyFlag: 'helios_identified'
+  }
+];
+
 const FACTIONS = [FactionId.DataGhost, FactionId.EasternNetwork, FactionId.WesternAlliance];
 
 /** Pre-written puzzle contracts — all clues self-contained in the description. */
@@ -204,15 +239,28 @@ export class ContractGeneratorService {
       expiresAt: Date.now() + (3600 * 1000 * 24),
     }));
 
+    // Add story missions to the board so the narrative path is visible and unlocks over time.
+    const storyContracts = this.buildStoryContracts().slice(0, 2);
+    const storyCount = storyContracts.length;
+
     // Fill the rest with procedural contracts
-    const proceduralCount = Math.max(0, count - puzzleCount);
+    const proceduralCount = Math.max(0, count - puzzleCount - storyCount);
     const procedural: Contract[] = [];
     for (let i = 0; i < proceduralCount; i++) {
       procedural.push(this.generateOne(rng, i));
     }
 
-    // Shuffle together so puzzles don't always appear first
-    return [...chosenPuzzles, ...procedural].sort(() => rng() - 0.5);
+    // Shuffle together so puzzles and story missions don't always appear in the same order.
+    return [...chosenPuzzles, ...storyContracts, ...procedural].sort(() => rng() - 0.5);
+  }
+
+  private buildStoryContracts(): Contract[] {
+    return STORY_MISSIONS.map((m, i) => ({
+      ...m,
+      id: `story_${Date.now()}_${i}`,
+      status: ContractStatus.Available,
+      expiresAt: Date.now() + (3600 * 1000 * 24 * 3)
+    }));
   }
 
   private generateOne(rng: () => number, index: number): Contract {

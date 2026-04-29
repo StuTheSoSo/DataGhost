@@ -20,7 +20,7 @@
         *ngFor="let c of sortedContracts"
         class="contract-item dg-glass"
         [class.selected]="selectedContract?.id === c.id"
-        [class.contract-locked]="firstContactActive && c.title !== 'First Contact — Prove Your Chops'"
+        [class.contract-locked]="contractLocked(c)"
         (click)="select(c, firstContactActive)">
 
           <div class="contract-header">
@@ -33,6 +33,7 @@
             <span class="faction-tag dg-text-dim" *ngIf="c.factionAffiliation">
               [{{ c.factionAffiliation | uppercase }}]
             </span>
+            <span class="story-tag dg-text-amber" *ngIf="c.isStoryMission">STORY</span>
             <span class="time-limit dg-text-amber">
               <ion-icon name="timer-outline"></ion-icon>{{ timeLabel(c.timeLimit) }}
             </span>
@@ -54,9 +55,14 @@
           <!-- Expanded details -->
           <div class="contract-details" *ngIf="selectedContract?.id === c.id">
             <p class="desc dg-text-dim">{{ c.description }}</p>
-            <ion-button expand="block" class="accept-btn" (click)="accept(); $event.stopPropagation()">
-              ACCEPT CONTRACT
+            <ion-button expand="block" class="accept-btn"
+                        [disabled]="contractLocked(c)"
+                        (click)="accept(); $event.stopPropagation()">
+              {{ contractLocked(c) ? 'LOCKED' : 'ACCEPT CONTRACT' }}
             </ion-button>
+            <p class="locked-hint dg-text-amber" *ngIf="contractLocked(c) && c.chapterRequirement">
+              Unlocks at chapter {{ c.chapterRequirement }}.
+            </p>
           </div>
 
         </div>

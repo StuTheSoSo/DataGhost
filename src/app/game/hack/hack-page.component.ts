@@ -36,7 +36,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
   routeProgress = 0;
 
   connected = false;
-  currentStage = 0; // 0=idle, 1=entry, 2=auth, 3=objective, 4=done
+  currentStage = 0; // 0=idle, 1=entry, 2=auth, 3=log, 4=objective
   tools: UplinkTool[] = [];
 
   toolRunning = false;
@@ -408,6 +408,9 @@ export class HackPageComponent implements OnInit, OnDestroy {
     this.connected = false;
     this.trace.stop();
     this.store.dispatch(GameActions.completeContract({ contractId: this.contract.id }));
+    if (this.contract.isStoryMission && this.contract.storyFlag) {
+      this.narrative.setFlag(this.contract.storyFlag, true);
+    }
     this.economy.earn(this.contract.payout, `Contract: ${this.contract.title}`);
     Object.entries(this.contract.repEffects).forEach(([fid, delta]) => {
       this.faction.adjust(fid as any, delta ?? 0);
