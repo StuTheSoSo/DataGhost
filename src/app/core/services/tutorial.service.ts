@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 
-type TutorialStep = 'worldIntro' | 'identity' | 'hub' | 'inbox' | 'jobBoard';
+type TutorialStep = 'worldIntro' | 'identity' | 'hub' | 'inbox' | 'jobBoard' | 'firstMissionsDone' | 'rigUpgrade';
 
 interface TutorialState {
   worldIntro: boolean;
@@ -9,6 +9,8 @@ interface TutorialState {
   hub: boolean;
   inbox: boolean;
   jobBoard: boolean;
+  firstMissionsDone: boolean;
+  rigUpgrade: boolean;
 }
 
 const TUTORIAL_KEY = 'dg_tutorial_state';
@@ -20,7 +22,9 @@ export class TutorialService {
     identity: false,
     hub: false,
     inbox: false,
-    jobBoard: false
+    jobBoard: false,
+    firstMissionsDone: false,
+    rigUpgrade: false
   };
 
   async initialize(): Promise<void> {
@@ -34,10 +38,12 @@ export class TutorialService {
         identity: !!parsed.identity,
         hub: !!parsed.hub,
         inbox: !!parsed.inbox,
-        jobBoard: !!parsed.jobBoard
+        jobBoard: !!parsed.jobBoard,
+        firstMissionsDone: !!parsed.firstMissionsDone,
+        rigUpgrade: !!parsed.rigUpgrade
       };
     } catch {
-      this.state = { worldIntro: false, identity: false, hub: false, inbox: false, jobBoard: false };
+      this.state = { worldIntro: false, identity: false, hub: false, inbox: false, jobBoard: false, firstMissionsDone: false, rigUpgrade: false };
     }
   }
 
@@ -51,7 +57,7 @@ export class TutorialService {
   }
 
   async reset(): Promise<void> {
-    this.state = { worldIntro: false, identity: false, hub: false, inbox: false, jobBoard: false };
+    this.state = { worldIntro: false, identity: false, hub: false, inbox: false, jobBoard: false, firstMissionsDone: false, rigUpgrade: false };
     await Preferences.set({ key: TUTORIAL_KEY, value: JSON.stringify(this.state) });
   }
 }

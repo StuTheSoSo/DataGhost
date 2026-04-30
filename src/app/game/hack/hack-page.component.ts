@@ -11,7 +11,9 @@ import { FactionService } from '../../core/services/faction.service';
 import { GameStateService } from '../../core/services/game-state.service';
 import { NarrativeService } from '../../core/services/narrative.service';
 import { CurrentContractService } from '../../core/services/current-contract.service';
-import { selectEquippedSoftware } from '../../core/store/game.selectors';
+import { TutorialService } from '../../core/services/tutorial.service';
+import { SoundService } from '../../core/services/sound.service';
+import { selectEquippedSoftware, selectCurrentAct } from '../../core/store/game.selectors';
 
 export interface UplinkTool {
   id: string;
@@ -37,6 +39,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   connected = false;
   currentStage = 0; // 0=idle, 1=entry, 2=auth, 3=log, 4=objective
+  currentAct = 0;
   tools: UplinkTool[] = [];
 
   toolRunning = false;
@@ -47,6 +50,8 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   statusLog: string[] = [];
   showBriefingOverlay = false;
+  showPuzzleIntelOverlay = false;
+  showMissionDetails = false;
   connSeconds = 0;
   targetIp = '';
   private connClockTimer: any = null;
@@ -66,11 +71,17 @@ export class HackPageComponent implements OnInit, OnDestroy {
     if (answer.toLowerCase() === expected.toLowerCase()) {
       this.puzzleSolved = true;
       this.puzzleError = false;
+      this.sound.puzzleCorrect();
       this.addLog('Access code verified. Objective unlocked.');
     } else {
       this.puzzleError = true;
+      this.sound.puzzleIncorrect();
       this.addLog('Access code rejected — review the mission summary.');
     }
+  }
+
+  toggleMissionDetails(): void {
+    this.showMissionDetails = !this.showMissionDetails;
   }
 
   get connTimeLabel(): string {
@@ -117,7 +128,9 @@ export class HackPageComponent implements OnInit, OnDestroy {
     switch (this.currentStage) {
       case 1: return 'RUN the Connection Scanner or Proxy Bypasser to enter the target network.';
       case 2: return 'RUN the Password Breaker to crack the authentication layer.';
-      case 3: return 'ERASE logs first — then execute the payload.';
+      case 3: return this.contract?.type === ContractType.TraceClean
+        ? 'Purge YOUR entry records first — the contracted target wipe comes next.'
+        : 'Erase your intrusion trail from the relay chain — then execute the objective.';
       case 4: return this.hasPuzzle && !this.puzzleSolved
         ? 'DECODE the access code from the mission summary, then unlock the objective.'
         : 'RUN the objective tool to complete the mission, then disconnect.';
@@ -148,11 +161,44 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   get missionSteps(): string[] {
     if (!this.contract) return [];
+
+    let step3: string;
+    let step4: string;
+    switch (this.contract.type) {
+      case ContractType.TraceClean:
+        step3 = 'Purge your own entry records from every traversed relay node.';
+        step4 = 'Execute the contracted log wipe on the target system and disconnect.';
+        break;
+      case ContractType.EvidencePlant:
+        step3 = 'Erase your approach trail so the planted data appears to originate from another source.';
+        step4 = 'Seed the forged evidence into the target database and disconnect cleanly.';
+        break;
+      case ContractType.DataTheft:
+        step3 = 'Scrub the access trail from the relay chain before triggering the data pull.';
+        step4 = 'Exfiltrate the target payload across the stealthy route and disconnect.';
+        break;
+      case ContractType.AccountAccess:
+        step3 = 'Erase authentication logs to prevent post-session forensics.';
+        step4 = 'Capture the target session token and disconnect cleanly.';
+        break;
+      case ContractType.Sabotage:
+        step3 = 'Eliminate your intrusion signature from the relay chain before arming the payload.';
+        step4 = 'Deploy the sabotage payload on the target system and disconnect.';
+        break;
+      case ContractType.SocialEngineering:
+        step3 = 'Scrub the digital trace before initiating the social engineering vector.';
+        step4 = 'Harvest the access tokens and exfiltrate. Disconnect cleanly.';
+        break;
+      default:
+        step3 = 'Erase your intrusion trail before activating the objective.';
+        step4 = `Complete the ${this.objectiveLabel.toLowerCase()} objective and disconnect safely.`;
+    }
+
     const steps = [
       'Establish a clean proxy route into the target network.',
       'Bypass authentication and gain elevated access.',
-      'Erase traces before activating the objective payload.',
-      `Complete the ${this.objectiveLabel.toLowerCase()} objective and disconnect safely.`
+      step3,
+      step4,
     ];
     if (this.hasPuzzle) {
       steps.splice(3, 0, 'Decode the access code from the mission summary before the final stage.');
@@ -162,6 +208,11 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   get runningToolName(): string {
     return this.tools.find(t => t.id === this.activeToolId)?.name ?? '';
+  }
+
+  dismissPuzzleIntel(): void {
+    this.showPuzzleIntelOverlay = false;
+    this.showBriefingOverlay = true;
   }
 
   dismissBriefing(): void {
@@ -181,10 +232,16 @@ export class HackPageComponent implements OnInit, OnDestroy {
     private gameState: GameStateService,
     private narrative: NarrativeService,
     private alert: AlertController,
-    private currentContract: CurrentContractService
+    private currentContract: CurrentContractService,
+    private tutorial: TutorialService,
+    public sound: SoundService
   ) {}
 
   ngOnInit(): void {
+    this.subs.add(
+      this.store.select(selectCurrentAct).subscribe(act => this.currentAct = act)
+    );
+
     this.subs.add(
       this.store.select(selectEquippedSoftware).subscribe(items => {
         this.equippedSoftware = items;
@@ -198,7 +255,11 @@ export class HackPageComponent implements OnInit, OnDestroy {
       this.targetIp = this.generateIp();
       this.addLog('Uplink OS v2.0 - ready.');
       this.addLog(`Mission loaded: ${this.contract.title}`);
-      this.showBriefingOverlay = true;
+      if (this.hasPuzzle) {
+        this.showPuzzleIntelOverlay = true;
+      } else {
+        this.showBriefingOverlay = true;
+      }
     }
 
     this.subs.add(
@@ -208,12 +269,15 @@ export class HackPageComponent implements OnInit, OnDestroy {
         if (this.toolRunning) {
           this.displayTraceProgress = s.progress;
         }
-        if (s.progress >= 100) this.onTraced();
         if (s.isActive) {
-          if (prev < 40 && s.progress >= 40) this.addLog('WARNING: Trace at 40% — act quickly.');
-          if (prev < 75 && s.progress >= 75) this.addLog('CRITICAL: Trace at 75% — DISCONNECT NOW.');
+          if (prev < 40 && s.progress >= 40) { this.addLog('WARNING: Trace at 40% — act quickly.'); this.sound.traceWarning(); }
+          if (prev < 75 && s.progress >= 75) { this.addLog('CRITICAL: Trace at 75% — DISCONNECT NOW.'); this.sound.traceCritical(); }
         }
       })
+    );
+
+    this.subs.add(
+      this.trace.traced$.subscribe(() => this.onTraced())
     );
   }
 
@@ -279,16 +343,20 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   connect(): void {
     if (!this.contract) return;
+    this.sound.connect();
     this.connected = true;
     this.currentStage = 1;
     this.routeProgress = 0;
     this.selectedEntryToolId = this.tools.find(t => t.stage === 1)?.id ?? null;
-    this.trace.start(this.contract.difficulty, this.calculateExpectedMissionMs());
+    this.trace.start(this.contract.difficulty, this.calculateExpectedMissionMs(), this.currentAct);
     this.connSeconds = 0;
     this.addLog(`Connecting via ${this.routeNodes.length - 1} proxy nodes...`);
     this.addLog(`Target IP: ${this.targetIp}`);
     this.addLog('Route established. Trace active.');
-    this.connClockTimer = setInterval(() => this.connSeconds++, 1000);
+    this.connClockTimer = setInterval(() => {
+      this.connSeconds++;
+      this.sound.timerTick();
+    }, 1000);
   }
 
   canRun(tool: UplinkTool): boolean {
@@ -307,6 +375,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   runTool(tool: UplinkTool): void {
     if (!this.canRun(tool)) return;
+    this.sound.toolStart();
     this.toolRunning = true;
     this.toolProgress = 0;
     this.activeToolId = tool.id;
@@ -361,6 +430,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     this.toolRunning = false;
     this.activeToolId = null;
     this.displayTraceProgress = this.traceState.progress;
+    this.sound.toolComplete();
     this.addLog(`${tool.name} complete.`);
 
     // Stage 1 tools: any one of them advances to stage 2 and moves to PRX-1
@@ -368,12 +438,14 @@ export class HackPageComponent implements OnInit, OnDestroy {
       this.currentStage = 2;
       this.selectedEntryToolId = null;
       this.routeProgress = this.calculateRouteProgressForStage(tool.stage);
+      this.sound.stageAdvance();
       this.addLog('Entry layer bypassed. Auth layer exposed.');
     }
     // Stage 2: password breaker advances to stage 3 and moves to PRX-2
     else if (tool.stage === 2 && this.currentStage === 2) {
       this.currentStage = 3;
       this.routeProgress = this.calculateRouteProgressForStage(tool.stage);
+      this.sound.stageAdvance();
       this.addLog('Auth cracked. Objective layer accessible.');
     }
     // Stage 3: log deleter — clears tracks, then unlocks target and moves to TARGET
@@ -381,6 +453,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
       this.trace.reduceTrace(Math.min(40, 15 + (this.contract?.difficulty ?? 1) * 2));
       this.currentStage = 4;
       this.routeProgress = this.calculateRouteProgressForStage(tool.stage);
+      this.sound.stageAdvance();
       this.puzzleSolved = false;
       this.puzzleInput = '';
       this.puzzleError = false;
@@ -398,6 +471,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     this.selectedEntryToolId = null;
     clearInterval(this.connClockTimer);
     this.trace.stop();
+    this.sound.disconnect();
     this.addLog('Manual disconnect. Mission aborted.');
     this.store.dispatch(GameActions.failContract({ contractId: this.contract.id }));
     this.router.navigate(['/job-board'], { replaceUrl: true });
@@ -417,6 +491,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     });
     this.narrative.setFlag('act1_first_contract', true);
     this.gameState.scheduleAutoSave();
+    this.sound.missionComplete();
 
     const a = await this.alert.create({
       header: '// MISSION COMPLETE',
@@ -426,13 +501,21 @@ export class HackPageComponent implements OnInit, OnDestroy {
     });
     await a.present();
     await a.onDidDismiss();
-    this.router.navigate(['/job-board'], { replaceUrl: true });
+    // After the tutorial followup mission, send the player to upgrade their rig
+    const isTutorialFollowup = this.contract?.title === 'Yellow Token — Archive Audit';
+    if (isTutorialFollowup && this.tutorial.shouldShow('rigUpgrade')) {
+      await this.tutorial.complete('firstMissionsDone');
+      this.router.navigate(['/rig'], { replaceUrl: true });
+    } else {
+      this.router.navigate(['/job-board'], { replaceUrl: true });
+    }
   }
 
   private async onTraced(): Promise<void> {
-    if (!this.contract) return;
+    if (!this.contract || !this.connected) return;
     this.connected = false;
     clearInterval(this.toolTimer);
+    this.sound.missionFail();
     this.store.dispatch(GameActions.failContract({ contractId: this.contract.id }));
     const a = await this.alert.create({
       header: '// TRACE COMPLETE',

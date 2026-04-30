@@ -55,7 +55,15 @@ export class HubPageComponent implements OnInit {
   }
 
   shouldDisableTile(route: string): boolean {
-    return this.tutorial.shouldShow('inbox') && route !== '/inbox';
+    // Phase 1: inbox not read yet → only inbox accessible
+    if (this.tutorial.shouldShow('inbox') && route !== '/inbox') return true;
+    // Phase 2: inbox done, both missions not yet complete → only job-board (and inbox) accessible
+    if (!this.tutorial.shouldShow('inbox') && this.tutorial.shouldShow('firstMissionsDone')
+        && route !== '/job-board' && route !== '/inbox') return true;
+    // Phase 3: both missions done, rig not yet upgraded → only rig accessible
+    if (!this.tutorial.shouldShow('firstMissionsDone') && this.tutorial.shouldShow('rigUpgrade')
+        && route !== '/rig') return true;
+    return false;
   }
 
   navigateTo(item: { label: string; icon: string; route: string }): void {

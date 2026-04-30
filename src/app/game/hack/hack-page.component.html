@@ -24,6 +24,17 @@
 
 <ion-content class="dg-scanlines hack-content">
   <ng-container *ngIf="contract; else noContract">
+    <!-- PUZZLE INTEL OVERLAY: full clue dossier, no timer yet -->
+    <div class="hack-overlay" *ngIf="showPuzzleIntelOverlay">
+      <div class="overlay-card puzzle-intel-card" (click)="$event.stopPropagation()">
+        <div class="intel-badge dg-text-amber">// INTEL DOSSIER</div>
+        <div class="overlay-title dg-text-cyan">{{ contract.title }}</div>
+        <p class="intel-body dg-text-dim">{{ contract.description }}</p>
+        <div class="intel-notice dg-text-dim">Study the dossier carefully. The answer is hidden in the text above. The timer does not start until you begin the hack.</div>
+        <button class="overlay-cta" (click)="dismissPuzzleIntel()">I'VE NOTED IT — VIEW BRIEFING</button>
+      </div>
+    </div>
+
     <div class="hack-overlay" *ngIf="showBriefingOverlay" (click)="dismissBriefing()">
       <div class="overlay-card" (click)="$event.stopPropagation()">
         <span class="section-label dg-text-dim">// MISSION SUMMARY</span>
@@ -61,29 +72,56 @@
             <span class="section-label dg-text-dim">TARGET SYSTEM</span>
             <div class="target-name dg-text-cyan">{{ contract.title }}</div>
             <div class="target-ip dg-text-dim">{{ targetIp }}</div>
-            <div class="target-sec dg-text-amber" [class.dg-text-red]="contract.difficulty >= 7">
-              SEC-{{ contract.difficulty }}/10
+            <div class="target-desc-header">
+              <div class="target-sec dg-text-amber" [class.dg-text-red]="contract.difficulty >= 7">
+                SEC-{{ contract.difficulty }}/10
+              </div>
+              <button class="desc-toggle" (click)="toggleMissionDetails()">
+                {{ showMissionDetails ? 'HIDE MISSION BRIEFING' : 'SHOW MISSION BRIEFING' }}
+              </button>
             </div>
-            <div class="target-desc dg-text-dim">{{ contract.description }}</div>
+            <div class="target-desc dg-text-dim" [class.collapsed]="!showMissionDetails">
+              {{ contract.description }}
+            </div>
             <div class="target-payout dg-text-green">ℂ{{ contract.payout | number }}</div>
           </div>
 
-          <!-- STAGE PIPELINE -->
+          <!-- STAGE PIPELINE: horizontal compact bar -->
           <div class="stage-card dg-glass" *ngIf="connected">
             <div class="stage-pip" [class.pip-done]="currentStage > 1" [class.pip-now]="currentStage === 1" [class.pip-wait]="currentStage < 1">
               {{ currentStage > 1 ? '■' : '▶' }} ENTRY
             </div>
-            <div class="stage-arrow dg-text-dim">↓</div>
+            <div class="stage-arrow dg-text-dim">›</div>
             <div class="stage-pip" [class.pip-done]="currentStage > 2" [class.pip-now]="currentStage === 2" [class.pip-wait]="currentStage < 2">
               {{ currentStage > 2 ? '■' : (currentStage === 2 ? '▶' : '□') }} AUTH
             </div>
-            <div class="stage-arrow dg-text-dim">↓</div>
+            <div class="stage-arrow dg-text-dim">›</div>
             <div class="stage-pip" [class.pip-done]="currentStage > 3" [class.pip-now]="currentStage === 3" [class.pip-wait]="currentStage < 3">
               {{ currentStage > 3 ? '■' : (currentStage === 3 ? '▶' : '□') }} LOG
             </div>
-            <div class="stage-arrow dg-text-dim">↓</div>
+            <div class="stage-arrow dg-text-dim">›</div>
             <div class="stage-pip" [class.pip-done]="currentStage > 4" [class.pip-now]="currentStage === 4" [class.pip-wait]="currentStage < 4">
               {{ currentStage === 4 ? '▶' : '□' }} OBJ
+            </div>
+          </div>
+
+          <!-- OBJECTIVE: always-visible, pinned below stage bar -->
+          <div class="objective-card dg-glass" [class.obj-danger]="traceState.progress >= 75">
+            <div class="objective-text"
+                 [class.dg-text-cyan]="traceState.progress < 75"
+                 [class.dg-text-red]="traceState.progress >= 75">
+              ▶ {{ currentObjective }}
+            </div>
+          </div>
+
+          <!-- ACTIVE TOOL PROGRESS: pinned so it never scrolls away -->
+          <div class="running-card dg-glass" *ngIf="toolRunning">
+            <div class="running-header">
+              <span class="running-name dg-text-cyan">{{ runningToolName }}</span>
+              <span class="running-pct dg-text-dim">{{ toolProgress | number:'1.0-0' }}%</span>
+            </div>
+            <div class="running-bar-bg">
+              <div class="running-bar-fill" [style.width.%]="toolProgress"></div>
             </div>
           </div>
         </div>
@@ -92,25 +130,6 @@
 
       <!-- BOTTOM: scrollable mission actions -->
       <div class="scroll-panel">
-
-        <div class="objective-card dg-glass" [class.obj-danger]="traceState.progress >= 75">
-        <div class="objective-text"
-             [class.dg-text-cyan]="traceState.progress < 75"
-             [class.dg-text-red]="traceState.progress >= 75">
-          ▶ {{ currentObjective }}
-        </div>
-      </div>
-
-      <!-- ACTIVE TOOL PROGRESS -->
-      <div class="running-card dg-glass" *ngIf="toolRunning">
-        <div class="running-header">
-          <span class="running-name dg-text-cyan">{{ runningToolName }}</span>
-          <span class="running-pct dg-text-dim">{{ toolProgress | number:'1.0-0' }}%</span>
-        </div>
-        <div class="running-bar-bg">
-          <div class="running-bar-fill" [style.width.%]="toolProgress"></div>
-        </div>
-      </div>
 
       <!-- SOFTWARE LIST -->
       <div class="sw-card dg-glass">

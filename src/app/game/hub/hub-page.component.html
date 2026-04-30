@@ -16,6 +16,18 @@
       <ion-button size="small" fill="outline" (click)="dismissTutorial()">CONTINUE</ion-button>
     </div>
 
+    <div class="dg-glass tutorial-panel" *ngIf="!showTutorial && !tutorial.shouldShow('inbox') && tutorial.shouldShow('firstMissionsDone')">
+      <div class="tutorial-title dg-text-amber">TUTORIAL // FIRST MISSIONS</div>
+      <p class="tutorial-copy dg-text-dim">Good. Head to the JOB BOARD and accept your first contract. Complete both tutorial missions before moving on.</p>
+      <ion-button size="small" fill="outline" routerLink="/job-board">GO TO JOB BOARD</ion-button>
+    </div>
+
+    <div class="dg-glass tutorial-panel" *ngIf="!showTutorial && !tutorial.shouldShow('firstMissionsDone') && tutorial.shouldShow('rigUpgrade')">
+      <div class="tutorial-title dg-text-amber">TUTORIAL // UPGRADE YOUR RIG</div>
+      <p class="tutorial-copy dg-text-dim">Good work on the contracts. Before your next mission, head to your RIG and upgrade at least one piece of hardware or software.</p>
+      <ion-button size="small" fill="outline" routerLink="/rig">GO TO RIG</ion-button>
+    </div>
+
     <!-- Identity bar -->
     <div class="dg-glass identity-bar" *ngIf="player$ | async as player">
       <span class="alias dg-text-cyan">{{ player.alias }}</span>

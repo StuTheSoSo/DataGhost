@@ -7,6 +7,7 @@ import * as GameActions from '../../core/store/game.actions';
 import { NarrativeService } from '../../core/services/narrative.service';
 import { ContractGeneratorService } from '../../core/services/contract-generator.service';
 import { TutorialService } from '../../core/services/tutorial.service';
+import { SoundService } from '../../core/services/sound.service';
 
 interface ArchetypeOption {
   id: OriginArchetype;
@@ -59,7 +60,8 @@ export class IdentityPageComponent implements OnInit {
     private narrative: NarrativeService,
     private contractGen: ContractGeneratorService,
     private tutorial: TutorialService,
-    private router: Router
+    private router: Router,
+    public sound: SoundService
   ) {}
 
   ngOnInit(): void {
@@ -79,6 +81,7 @@ export class IdentityPageComponent implements OnInit {
 
   selectArchetype(id: OriginArchetype): void {
     this.selectedArchetype = id;
+    this.sound.uiSelect();
   }
 
   get selectedOption(): ArchetypeOption | undefined {
@@ -87,6 +90,7 @@ export class IdentityPageComponent implements OnInit {
 
   confirm(): void {
     if (this.form.invalid || !this.selectedArchetype) return;
+    this.sound.uiConfirm();
 
     const alias = this.form.value.alias.trim();
     const archetype = this.selectedArchetype;

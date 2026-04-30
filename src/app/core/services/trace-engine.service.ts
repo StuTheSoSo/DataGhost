@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, interval, Subject } from 'rxjs';
 import { takeUntil, map } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { GameState, RigStats, ProxyNode } from '../models/game.models';
 import * as GameActions from '../store/game.actions';
@@ -18,6 +19,9 @@ export class TraceEngineService {
   private stop$ = new Subject<void>();
   private traceProgress = 0;
   private traceActive = false;
+
+  /** Emits once when trace reaches 100% */
+  readonly traced$ = new Subject<void>();
 
   readonly state$: Observable<TraceState>;
 
@@ -39,12 +43,12 @@ export class TraceEngineService {
   }
 
   /** Start a trace tick loop for an active contract */
-  start(baseDifficulty: number, expectedDurationMs?: number): void {
+  start(baseDifficulty: number, expectedDurationMs?: number, act?: number): void {
     this.traceActive = true;
     this.traceProgress = 0;
     this.stop$ = new Subject<void>();
 
-    const tickRate = this.calcTickRate(baseDifficulty, expectedDurationMs);
+    const tickRate = this.calcTickRate(baseDifficulty, expectedDurationMs, act);
 
     interval(500)
       .pipe(takeUntil(this.stop$))
@@ -97,9 +101,13 @@ export class TraceEngineService {
     Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
   }
 
-  private calcTickRate(difficulty: number, expectedDurationMs?: number): number {
+  private calcTickRate(difficulty: number, expectedDurationMs?: number, act?: number): number {
     const reliability = this.calcRouteReliability();
-    const timeSec = Math.max(20, (expectedDurationMs ?? 30000) / 1000 * 1.3);
+    // Low-difficulty missions get extra breathing room: diff 1 = 3×, diff 2 = 2×, diff 3+ = 1×
+    const beginnerMultiplier = difficulty <= 2 ? (4 - difficulty) : 1;
+    // Act 1 gets 2.5× more time, Act 2 gets 1.75× more time
+    const actMultiplier = act === 1 ? 2.5 : act === 2 ? 1.75 : 1;
+    const timeSec = Math.max(20, (expectedDurationMs ?? 30000) / 1000 * 1.3 * beginnerMultiplier * actMultiplier);
     const baseRate = 50 / timeSec;
     const difficultyPressure = 1 + (difficulty - 1) * 0.05;
     const unreliabilityBonus = (1 - reliability) * 1.5;
@@ -115,7 +123,7 @@ export class TraceEngineService {
   private onTraceFull(): void {
     this.stop();
     Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
-    // Dispatch fail — handled by hack screen component observing trace
+    this.traced$.next();
   }
 
   get isTraced(): boolean {

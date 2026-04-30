@@ -5,7 +5,7 @@ import {
   PuzzleType, GameState, StoryAct
 } from '../models/game.models';
 import * as GameActions from '../store/game.actions';
-import { selectCurrentChapter, selectFactionReps } from '../store/game.selectors';
+import { selectCurrentChapter, selectFactionReps, selectStoryFlags } from '../store/game.selectors';
 
 const CONTRACT_TITLES: Record<ContractType, string[]> = {
   [ContractType.DataTheft]:         ['Extract R&D Files', 'Siphon Financial Records', 'Clone Database Shard'],
@@ -29,23 +29,23 @@ const STORY_MISSIONS: Array<Omit<Contract, 'id' | 'status' | 'expiresAt'>> = [
   {
     title: 'Signal Source — Vector Trace',
     description:
-      'A suspicious connection left a faint signature in the relay chain. Trace the source and confirm whether the contact is friend or foe.',
+      'A binary relay signature came back from a ghost node. Decode the probe report and identify the hidden source tag that betrayed the contact chain.',
     type: ContractType.AccountAccess,
     difficulty: 3,
-    payout: 2200,
+    payout: 2600,
     factionAffiliation: FactionId.DataGhost,
-    repEffects: { [FactionId.DataGhost]: 3 },
+    repEffects: { [FactionId.DataGhost]: 4 },
     timeLimit: null,
-    puzzleType: PuzzleType.PatternIntrusion,
-    puzzleAnswer: undefined,
+    puzzleType: PuzzleType.BinaryHexDecode,
+    puzzleAnswer: 'echo',
     isStoryMission: true,
-    chapterRequirement: 4,
+    chapterRequirement: 1,
     storyFlag: 'act1_signal_found'
   },
   {
     title: 'Helios Probe — Confirm the Leak',
     description:
-      'Helios intel points to a compromised facility. Get in, validate the leak, and leave a clean trail. This is not a paycheck — it is proof.',
+      'A leak from the Helios network suggests an insider data operation. Infiltrate, validate the breach, and prove the facility is compromised.',
     type: ContractType.DataTheft,
     difficulty: 5,
     payout: 4200,
@@ -53,10 +53,42 @@ const STORY_MISSIONS: Array<Omit<Contract, 'id' | 'status' | 'expiresAt'>> = [
     repEffects: { [FactionId.Helios]: 3 },
     timeLimit: null,
     puzzleType: PuzzleType.CipherDecode,
-    puzzleAnswer: undefined,
+    puzzleAnswer: 'helios',
     isStoryMission: true,
-    chapterRequirement: 9,
-    storyFlag: 'helios_identified'
+    chapterRequirement: 1,
+    storyFlag: 'act1_helios_confirmed'
+  },
+  {
+    title: 'Relay Corruption — Hidden Node',
+    description:
+      'A phantom relay node is corrupting the eastern backbone. Map the node topology and enter the missing node identifier to expose the hidden threat.',
+    type: ContractType.TraceClean,
+    difficulty: 4,
+    payout: 3600,
+    factionAffiliation: FactionId.EasternNetwork,
+    repEffects: { [FactionId.EasternNetwork]: 3 },
+    timeLimit: null,
+    puzzleType: PuzzleType.NetworkTopology,
+    puzzleAnswer: '3',
+    isStoryMission: true,
+    chapterRequirement: 2,
+    storyFlag: 'act2_relay_exposed'
+  },
+  {
+    title: 'Archive Cipher — Material Proof',
+    description:
+      'A buried archive holds the evidence of a cover-up. Recover the secret passphrase hidden inside the briefing and prove the deeper conspiracy.',
+    type: ContractType.EvidencePlant,
+    difficulty: 4,
+    payout: 3800,
+    factionAffiliation: FactionId.WesternAlliance,
+    repEffects: { [FactionId.WesternAlliance]: 3, [FactionId.DataGhost]: -1 },
+    timeLimit: null,
+    puzzleType: PuzzleType.CipherDecode,
+    puzzleAnswer: 'proof',
+    isStoryMission: true,
+    chapterRequirement: 2,
+    storyFlag: 'act2_archive_recovered'
   }
 ];
 
@@ -220,9 +252,11 @@ const PUZZLE_MISSIONS: Array<Omit<Contract, 'id' | 'status' | 'expiresAt'>> = [
 @Injectable({ providedIn: 'root' })
 export class ContractGeneratorService {
   private chapter = 1;
+  private storyFlags: Record<string, unknown> = {};
 
   constructor(private store: Store<{ game: GameState }>) {
     this.store.select(selectCurrentChapter).subscribe(c => this.chapter = c);
+    this.store.select(selectStoryFlags).subscribe(flags => this.storyFlags = flags);
   }
 
   /** Generate a pool of procedural contracts for the job board */
@@ -243,24 +277,62 @@ export class ContractGeneratorService {
     const storyContracts = this.buildStoryContracts().slice(0, 2);
     const storyCount = storyContracts.length;
 
+    const tutorialFollowup = this.chapter === 1 ? [this.buildTutorialFollowupContract(rng)] : [];
+    const tutorialCount = tutorialFollowup.length;
+
     // Fill the rest with procedural contracts
-    const proceduralCount = Math.max(0, count - puzzleCount - storyCount);
+    const proceduralCount = Math.max(0, count - puzzleCount - storyCount - tutorialCount);
     const procedural: Contract[] = [];
     for (let i = 0; i < proceduralCount; i++) {
       procedural.push(this.generateOne(rng, i));
     }
 
     // Shuffle together so puzzles and story missions don't always appear in the same order.
-    return [...chosenPuzzles, ...storyContracts, ...procedural].sort(() => rng() - 0.5);
+    return [...chosenPuzzles, ...storyContracts, ...tutorialFollowup, ...procedural].sort(() => rng() - 0.5);
   }
 
   private buildStoryContracts(): Contract[] {
-    return STORY_MISSIONS.map((m, i) => ({
+    const available = STORY_MISSIONS.filter(m => {
+      if (m.chapterRequirement && this.chapter < m.chapterRequirement) return false;
+      if (!m.storyFlag) return true;
+      return !this.storyFlags[m.storyFlag];
+    });
+
+    return available.map((m, i) => ({
       ...m,
       id: `story_${Date.now()}_${i}`,
       status: ContractStatus.Available,
       expiresAt: Date.now() + (3600 * 1000 * 24 * 3)
     }));
+  }
+
+  private buildTutorialFollowupContract(rng: () => number): Contract {
+    return {
+      id: `tut_followup_${Date.now()}_${Math.floor(rng() * 1000)}`,
+      title: 'Yellow Token — Archive Audit',
+      description:
+        'Four analysts sit around the secure archive node at north, east, south, and west. ' +
+        'The access key is the surname of the operator holding the yellow audit token.\n\n' +
+        'Clues:\n' +
+        '- The yellow token holder sits opposite Hart.\n' +
+        '- Park is assigned to the east station.\n' +
+        '- The green token belongs to the analyst at the north station.\n' +
+        '- The blue token holder sits opposite the green token holder.\n' +
+        '- Quill does not carry the blue token.\n' +
+        'Enter the surname of the yellow token operator, lowercase.',
+      type: ContractType.AccountAccess,
+      difficulty: 2,
+      payout: 1400,
+      factionAffiliation: FactionId.DataGhost,
+      repEffects: { [FactionId.DataGhost]: 1 },
+      timeLimit: null,
+      puzzleType: PuzzleType.PatternIntrusion,
+      puzzleAnswer: 'park',
+      isStoryMission: false,
+      chapterRequirement: 2,
+      status: ContractStatus.Available,
+      expiresAt: Date.now() + (3600 * 1000 * 24 * 2)
+    };
   }
 
   private generateOne(rng: () => number, index: number): Contract {

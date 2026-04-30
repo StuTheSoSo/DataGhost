@@ -1,13 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { GameState, Contract, ContractType } from '../../core/models/game.models';
 import { selectAvailableContracts, selectCurrentChapter } from '../../core/store/game.selectors';
 import * as GameActions from '../../core/store/game.actions';
 import { TutorialService } from '../../core/services/tutorial.service';
 import { CurrentContractService } from '../../core/services/current-contract.service';
+import { ContractGeneratorService } from '../../core/services/contract-generator.service';
 
 @Component({
   selector: 'app-job-board-page',
@@ -22,6 +23,7 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
   chapter$!: Observable<number>;
   currentChapter = 1;
   firstContactActive = false;
+  tutorialFollowupAvailable = false;
   selectedContract: Contract | null = null;
   showTutorial = false;
 
@@ -31,11 +33,16 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
     return c.title === 'First Contact — Prove Your Chops';
   }
 
+  private static isTutorialFollowup(c: Contract): boolean {
+    return c.title === 'Yellow Token — Archive Audit';
+  }
+
   constructor(
     private store: Store<{ game: GameState }>,
     private tutorial: TutorialService,
     private router: Router,
-    private currentContract: CurrentContractService
+    private currentContract: CurrentContractService,
+    private contractGen: ContractGeneratorService
   ) {}
 
   ngOnInit(): void {
@@ -44,8 +51,9 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
     this.sortedContracts$ = this.contracts$.pipe(
       map(cs => [
         ...cs.filter(c => JobBoardPageComponent.isFirstContact(c)),
+        ...cs.filter(c => JobBoardPageComponent.isTutorialFollowup(c)),
         ...cs.filter(c => c.isStoryMission && !JobBoardPageComponent.isFirstContact(c)),
-        ...cs.filter(c => !c.isStoryMission && !JobBoardPageComponent.isFirstContact(c))
+        ...cs.filter(c => !c.isStoryMission && !JobBoardPageComponent.isFirstContact(c) && !JobBoardPageComponent.isTutorialFollowup(c))
       ])
     );
     this.firstContactAvailable$ = this.contracts$.pipe(
@@ -53,6 +61,11 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
     );
     this.subs.add(
       this.firstContactAvailable$.subscribe(value => this.firstContactActive = value)
+    );
+    this.subs.add(
+      this.contracts$.pipe(
+        map(cs => cs.some(c => JobBoardPageComponent.isTutorialFollowup(c)))
+      ).subscribe(value => this.tutorialFollowupAvailable = value)
     );
     this.subs.add(
       this.chapter$.subscribe(value => this.currentChapter = value)
@@ -64,7 +77,24 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
       this.router.navigate(['/inbox']);
       return;
     }
+    if (!this.tutorial.shouldShow('firstMissionsDone') && this.tutorial.shouldShow('rigUpgrade')) {
+      this.router.navigate(['/rig']);
+      return;
+    }
     this.showTutorial = this.tutorial.shouldShow('jobBoard');
+    this.topUpContractsIfNeeded();
+  }
+
+  private topUpContractsIfNeeded(): void {
+    this.store.select(selectAvailableContracts).pipe(
+      map(cs => cs.length),
+      take(1)
+    ).subscribe(count => {
+      if (count < 4) {
+        const fresh = this.contractGen.generatePool(8);
+        this.store.dispatch(GameActions.appendContracts({ contracts: fresh }));
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -78,11 +108,13 @@ export class JobBoardPageComponent implements OnInit, OnDestroy {
 
   select(contract: Contract, firstContactActive: boolean): void {
     if (firstContactActive && !JobBoardPageComponent.isFirstContact(contract)) return;
+    if (!firstContactActive && this.tutorialFollowupAvailable && !JobBoardPageComponent.isTutorialFollowup(contract)) return;
     this.selectedContract = this.selectedContract?.id === contract.id ? null : contract;
   }
 
   contractLocked(contract: Contract): boolean {
     if (this.firstContactActive && !JobBoardPageComponent.isFirstContact(contract)) return true;
+    if (!this.firstContactActive && this.tutorialFollowupAvailable && !JobBoardPageComponent.isTutorialFollowup(contract)) return true;
     return !!contract.chapterRequirement && this.currentChapter < contract.chapterRequirement;
   }
 

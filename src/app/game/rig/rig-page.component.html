@@ -9,6 +9,17 @@
 <ion-content class="dg-scanlines" *ngIf="rig$ | async as rig">
   <div class="rig-container">
 
+    <div class="dg-glass tutorial-panel" *ngIf="showTutorial">
+      <div class="tutorial-title dg-text-amber">TUTORIAL // UPGRADE YOUR RIG</div>
+      <p class="tutorial-copy dg-text-dim">Your kit needs hardening before you take on harder contracts. Spend some of your credits on a hardware or software upgrade below. Each upgrade directly improves your ops.</p>
+      <ol class="tutorial-steps dg-text-dim">
+        <li>CPU — extends your puzzle solve window</li>
+        <li>BANDWIDTH — slows trace accumulation while connected</li>
+        <li>RAM — unlocks additional concurrent tool slots</li>
+      </ol>
+      <p class="tutorial-copy dg-text-dim" style="margin-top:8px">Upgrade any one item to continue.</p>
+    </div>
+
     <ng-container *ngIf="software$ | async as software">
       <div class="rig-dashboard dg-glass">
         <div class="rig-headline">

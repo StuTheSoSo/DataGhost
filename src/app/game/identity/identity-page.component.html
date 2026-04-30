@@ -24,7 +24,8 @@
             autocomplete="off"
             autocorrect="off"
             spellcheck="false"
-            class="mono-input">
+            class="mono-input"
+            (ionInput)="sound.keyClick()">
           </ion-input>
         </ion-item>
         <div class="input-hint dg-text-dim" *ngIf="form.get('alias')?.touched && form.get('alias')?.invalid">

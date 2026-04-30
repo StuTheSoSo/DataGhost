@@ -41,6 +41,14 @@ export const gameReducer = createReducer(
     ...state,
     contracts
   })),
+  on(GameActions.appendContracts, (state, { contracts }) => {
+    const existingIds = new Set(state.contracts.map(c => c.id));
+    const existingTitles = new Set(state.contracts
+      .filter(c => c.status === ContractStatus.Available)
+      .map(c => c.title));
+    const fresh = contracts.filter(c => !existingIds.has(c.id) && !existingTitles.has(c.title));
+    return { ...state, contracts: [...state.contracts, ...fresh] };
+  }),
   on(GameActions.startContract, (state, { contractId }) => ({
     ...state,
     activeContractId: contractId,

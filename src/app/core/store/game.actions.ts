@@ -19,6 +19,7 @@ export const spendCredits = createAction('[Economy] Spend Credits', props<{ amou
 
 // ── Contracts ─────────────────────────────────────────────
 export const setContracts        = createAction('[Contracts] Set Contracts',         props<{ contracts: Contract[] }>());
+export const appendContracts     = createAction('[Contracts] Append Contracts',      props<{ contracts: Contract[] }>());
 export const startContract       = createAction('[Contracts] Start Contract',        props<{ contractId: string }>());
 export const completeContract    = createAction('[Contracts] Complete Contract',     props<{ contractId: string }>());
 export const failContract        = createAction('[Contracts] Fail Contract',         props<{ contractId: string }>());
