@@ -44,6 +44,8 @@ export const setActiveRoute      = createAction('[Nodes] Set Active Route',     
 export const setStoryFlag        = createAction('[Story] Set Flag',                 props<{ key: string; value: boolean | string | number }>());
 export const advanceChapter      = createAction('[Story] Advance Chapter',          props<{ chapter: number; act: StoryAct }>());
 export const setEnding           = createAction('[Story] Set Ending',               props<{ ending: GameEndingType }>());
+export const setStoryBlocked     = createAction('[Story] Set Blocked',              props<{ blocked: boolean; messageId: string | null }>());
+export const clearStoryBlocked   = createAction('[Story] Clear Blocked');
 
 // ── Inbox ─────────────────────────────────────────────────
 export const addMessage          = createAction('[Inbox] Add Message',              props<{ message: NpcMessage }>());

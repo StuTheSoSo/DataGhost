@@ -154,6 +154,17 @@ export const gameReducer = createReducer(
     ...state,
     ending
   })),
+  on(GameActions.setStoryBlocked, (state, { blocked, messageId }) => ({
+    ...state,
+    storyBlocked: {
+      isBlocked: blocked,
+      messageId
+    }
+  })),
+  on(GameActions.clearStoryBlocked, (state) => ({
+    ...state,
+    storyBlocked: { isBlocked: false, messageId: null }
+  })),
 
   // ── Inbox ────────────────────────────────────────────────
   on(GameActions.addMessage, (state, { message }) => ({

@@ -46,6 +46,7 @@ export class TraceEngineService {
 
   /** Start a trace tick loop for an active contract */
   start(baseDifficulty: number, expectedDurationMs?: number, act?: number): void {
+    this.stop(); // Ensure any previous trace loop is terminated
     this.traceActive = true;
     this.traceProgress = 0;
     this.stop$ = new Subject<void>();

@@ -45,14 +45,24 @@ export class NarrativeService {
     this.achievement.onActAdvanced(act);
   }
 
-  deliverMessage(message: Omit<NpcMessage, 'id' | 'timestamp' | 'read'>): void {
+  deliverMessage(message: { fromAlias: string; factionId: FactionId | null; subject: string; body: string; isStoryTrigger?: boolean; storyFlag?: string; isBlocking?: boolean }): void {
     const msg: NpcMessage = {
-      ...message,
       id: `msg_${Date.now()}_${Math.random().toString(36).slice(2)}`,
       timestamp: Date.now(),
-      read: false
+      read: false,
+      fromAlias: message.fromAlias,
+      factionId: message.factionId,
+      subject: message.subject,
+      body: message.body,
+      isStoryTrigger: message.isStoryTrigger || false,
+      storyFlag: message.storyFlag,
+      isBlocking: message.isBlocking || false // Ensure isBlocking is always defined
     };
     this.store.dispatch(GameActions.addMessage({ message: msg }));
+    if (msg.isBlocking) {
+      // Dispatch the story blocked state to the store
+      this.store.dispatch(GameActions.setStoryBlocked({ blocked: true, messageId: msg.id }));
+    }
   }
 
   evaluateMilestones(): void {
@@ -66,6 +76,7 @@ export class NarrativeService {
           subject: '// PRIORITY — read this',
           body: 'The last target wasn\'t who they said. I traced the contract source. It leads somewhere you don\'t want it to. Meet at the dead drop.',
           isStoryTrigger: true,
+          isBlocking: true, // This message forces user attention
           storyFlag: 'act2_started'
         });
         this.store.dispatch(GameActions.revealFaction({ factionId: FactionId.Helios }));
@@ -83,6 +94,7 @@ export class NarrativeService {
           subject: 'We know who you are.',
           body: 'DataGhost. We\'ve been watching since Act One. You should have stayed anonymous. Helios doesn\'t forgive interference.',
           isStoryTrigger: true,
+          isBlocking: true, // This message forces user attention
           storyFlag: 'act3_started'
         });
       }
@@ -119,6 +131,7 @@ export class NarrativeService {
       subject: 'You\'ve been found.',
       body: `${alias}. That\'s what they call you. I call you an opportunity.\n\nWe are DataGhost. We don\'t exist. You don\'t either — not anymore.\n\nFirst job is on the board. Low-risk. Prove yourself.\n\n—V`,
       isStoryTrigger: true,
+      isBlocking: true, // This initial message is also blocking
       storyFlag: 'act0_intro_delivered'
     });
   }

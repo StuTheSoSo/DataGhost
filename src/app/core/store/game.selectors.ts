@@ -68,3 +68,5 @@ export const selectLeaderboard = createSelector(selectGameState, s => s.leaderbo
 
 // ── Accessibility ─────────────────────────────────────────
 export const selectAccessibility = createSelector(selectGameState, s => s.accessibility);
+
+export const selectStoryBlocked = createSelector(selectGameState, s => s.storyBlocked);

@@ -182,6 +182,12 @@ export interface NpcMessage {
   read: boolean;
   isStoryTrigger: boolean;
   storyFlag?: string;
+  isBlocking?: boolean;
+}
+
+export interface StoryBlockedState {
+  isBlocked: boolean;
+  messageId: string | null;
 }
 
 export interface StoryFlag {
@@ -216,6 +222,7 @@ export interface GameState {
   dailyChallenges: DailyChallenge[];
   leaderboard: LeaderboardEntry[];
   accessibility: AccessibilitySettings;
+  storyBlocked: StoryBlockedState;
 }
 
 export const initialFactionReputations: Record<FactionId, FactionReputation> = {
@@ -290,5 +297,9 @@ export const initialGameState: GameState = {
   achievements: initialAchievements,
   dailyChallenges: [],
   leaderboard: [],
-  accessibility: { colorblindMode: false, largeFontMode: false }
+  accessibility: { colorblindMode: false, largeFontMode: false },
+  storyBlocked: {
+    isBlocked: false,
+    messageId: null
+  }
 };

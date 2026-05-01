@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { AlertController } from '@ionic/angular';
-import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Haptics } from '@capacitor/haptics';
 import { GameState, Contract, ContractType, ContractStatus, SoftwareItem } from '../../core/models/game.models';
 import * as GameActions from '../../core/store/game.actions';
 import { TraceEngineService, TraceState } from '../../core/services/trace-engine.service';
@@ -245,7 +245,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     public sound: SoundService,
     private achievement: AchievementService,
     private eventService: EventService,
-    private leaderboard: LeaderboardService
+    private leaderboard: LeaderboardService // Corrected import path
   ) {}
 
   ngOnInit(): void {
@@ -524,6 +524,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     this.connected = false;
     this.trace.stop();
     this.store.dispatch(GameActions.completeContract({ contractId: this.contract.id }));
+    // Ensure story milestones are evaluated after contract completion
     if (this.contract.isStoryMission && this.contract.storyFlag) {
       this.narrative.setFlag(this.contract.storyFlag, true);
     }
@@ -533,7 +534,12 @@ export class HackPageComponent implements OnInit, OnDestroy {
     });
     this.narrative.setFlag('act1_first_contract', true);
     this.gameState.scheduleAutoSave();
+    this.narrative.evaluateMilestones(); // Re-evaluate milestones to trigger any new story events
     this.sound.missionComplete();
+    
+    // If a story message is blocking, navigate to the inbox to force user to read it.
+    // The InboxComponent should be responsible for clearing the `storyBlocked` state
+    // once the message is acknowledged.
 
     // ── Achievement & challenge tracking ─────────────────
     const traceAtEnd = Math.floor(this.traceState.progress);
@@ -569,12 +575,14 @@ export class HackPageComponent implements OnInit, OnDestroy {
     });
     await a.present();
     await a.onDidDismiss();
-    const isTutorialFollowup = this.contract?.title === 'Yellow Token — Archive Audit';
-    if (isTutorialFollowup && this.tutorial.shouldShow('rigUpgrade')) {
-      await this.tutorial.complete('firstMissionsDone');
-      this.router.navigate(['/rig'], { replaceUrl: true });
+
+   
+      const isTutorialFollowup = this.contract?.title === 'Port Mapping — Gateway Scan';
+      if (isTutorialFollowup && this.tutorial.shouldShow('rigUpgrade')) {
+        await this.tutorial.complete('firstMissionsDone');
+        this.router.navigate(['/rig'], { replaceUrl: true });
     } else {
-      this.router.navigate(['/job-board'], { replaceUrl: true });
+        this.router.navigate(['/job-board'], { replaceUrl: true });
     }
   }
 
@@ -584,6 +592,8 @@ export class HackPageComponent implements OnInit, OnDestroy {
     clearInterval(this.toolTimer);
     this.sound.missionFail();
     this.store.dispatch(GameActions.failContract({ contractId: this.contract.id }));
+    this.narrative.evaluateMilestones(); 
+
     const a = await this.alert.create({
       header: '// TRACE COMPLETE',
       message: 'Your connection has been traced. Uplink account flagged.',
