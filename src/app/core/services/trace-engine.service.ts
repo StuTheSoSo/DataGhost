@@ -12,6 +12,7 @@ export interface TraceState {
   progress: number;   // 0-100
   isActive: boolean;
   routeReliability: number; // 0-1 composite
+  isOverclocked: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +20,7 @@ export class TraceEngineService {
   private stop$ = new Subject<void>();
   private traceProgress = 0;
   private traceActive = false;
+  private overclocked = false;
 
   /** Emits once when trace reaches 100% */
   readonly traced$ = new Subject<void>();
@@ -53,12 +55,17 @@ export class TraceEngineService {
     interval(500)
       .pipe(takeUntil(this.stop$))
       .subscribe(() => {
-        this.traceProgress = Math.min(100, this.traceProgress + tickRate);
+        // Add "Volatility": as trace increases, the tick becomes less predictable
+        const volatility = this.traceProgress > 70 ? (Math.random() * 0.5) : 0;
+        this.traceProgress = Math.min(100, this.traceProgress + tickRate + volatility);
+
         if (this.traceProgress >= 100) {
           this.onTraceFull();
         }
-        if (this.traceProgress >= 70 && this.traceProgress < 72) {
-          Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
+
+        // Dynamic Haptic Feedback: Faster "heartbeat" pulses when near 100%
+        if (this.traceProgress > 80 && Math.random() > 0.8) {
+          Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
         }
       });
   }
@@ -87,11 +94,17 @@ export class TraceEngineService {
     }, durationMs);
   }
 
+  setOverclock(enabled: boolean): void {
+    this.overclocked = enabled;
+    if (enabled) Haptics.impact({ style: ImpactStyle.Heavy }).catch(() => {});
+  }
+
   currentState(): TraceState {
     return {
       progress: this.traceProgress,
       isActive: this.traceActive,
-      routeReliability: this.calcRouteReliability()
+      routeReliability: this.calcRouteReliability(),
+      isOverclocked: this.overclocked
     };
   }
 
@@ -111,7 +124,9 @@ export class TraceEngineService {
     const baseRate = 50 / timeSec;
     const difficultyPressure = 1 + (difficulty - 1) * 0.05;
     const unreliabilityBonus = (1 - reliability) * 1.5;
-    return Math.max(0.35, Math.min(12, baseRate * difficultyPressure + unreliabilityBonus));
+    
+    const overclockMultiplier = this.overclocked ? 2.8 : 1.0;
+    return Math.max(0.35, Math.min(15, (baseRate * difficultyPressure + unreliabilityBonus) * overclockMultiplier));
   }
 
   private calcRouteReliability(): number {

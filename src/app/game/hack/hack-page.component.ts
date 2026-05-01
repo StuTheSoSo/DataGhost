@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { AlertController } from '@ionic/angular';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { GameState, Contract, ContractType, ContractStatus, SoftwareItem } from '../../core/models/game.models';
 import * as GameActions from '../../core/store/game.actions';
 import { TraceEngineService, TraceState } from '../../core/services/trace-engine.service';
@@ -37,7 +38,12 @@ export interface UplinkTool {
 export class HackPageComponent implements OnInit, OnDestroy {
   contract: Contract | null = null;
   contractId: string | null = null;
-  traceState: TraceState = { progress: 0, isActive: false, routeReliability: 0.5 };
+  traceState: TraceState = { 
+    progress: 0, 
+    isActive: false, 
+    routeReliability: 0.5, 
+    isOverclocked: false 
+  };
   displayTraceProgress = 0;
   routeProgress = 0;
 
@@ -107,12 +113,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     return `${rand(50,220)}.${rand(0,255)}.${rand(0,255)}.${rand(1,254)}`;
   }
 
-  routeNodes = [
-    { label: 'GATEWAY' },
-    { label: 'PRX-1'   },
-    { label: 'PRX-2'   },
-    { label: 'TARGET'  }
-  ];
+  routeNodes: { label: string }[] = [];
 
   get objectiveLabel(): string {
     if (!this.contract) return '';
@@ -131,14 +132,14 @@ export class HackPageComponent implements OnInit, OnDestroy {
     if (!this.connected) return 'Press CONNECT TO TARGET to begin the mission.';
     if (this.toolRunning) return 'Tool executing — wait for completion. Watch the trace.';
     switch (this.currentStage) {
-      case 1: return 'RUN the Connection Scanner or Proxy Bypasser to enter the target network.';
+      case 1: return 'Establish an initial handshake via the Gateway.';
       case 2: return 'RUN the Password Breaker to crack the authentication layer.';
       case 3: return this.contract?.type === ContractType.TraceClean
-        ? 'Purge YOUR entry records first — the contracted target wipe comes next.'
+        ? 'Purge YOUR intrusion trail first — the contracted target wipe comes next.'
         : 'Erase your intrusion trail from the relay chain — then execute the objective.';
       case 4: return this.hasPuzzle && !this.puzzleSolved
-        ? 'DECODE the access code from the mission summary, then unlock the objective.'
-        : 'RUN the objective tool to complete the mission, then disconnect.';
+        ? 'DECODE the access code from the briefing, then unlock the objective.'
+        : `RUN the ${this.objectiveLabel.toLowerCase()} tool to complete the mission.`;
       default: return '';
     }
   }
@@ -263,6 +264,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     if (this.contract) {
       this.buildToolList(this.contract);
       this.targetIp = this.generateIp();
+      this.buildRouteNodes(this.contract.difficulty);
       this.addLog('Uplink OS v2.0 - ready.');
       this.addLog(`Mission loaded: ${this.contract.title}`);
       if (this.hasPuzzle) {
@@ -351,6 +353,16 @@ export class HackPageComponent implements OnInit, OnDestroy {
     ];
   }
 
+  private buildRouteNodes(difficulty: number): void {
+    const proxyCount = difficulty <= 3 ? 1 : difficulty <= 7 ? 2 : 3;
+    const nodes = [{ label: 'GATEWAY' }];
+    for (let i = 1; i <= proxyCount; i++) {
+      nodes.push({ label: `PRX-${i}` });
+    }
+    nodes.push({ label: 'TARGET' });
+    this.routeNodes = nodes;
+  }
+
   connect(): void {
     if (!this.contract) return;
     this.sound.connect();
@@ -361,8 +373,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     this.selectedEntryToolId = this.tools.find(t => t.stage === 1)?.id ?? null;
     this.trace.start(this.contract.difficulty, this.calculateExpectedMissionMs(), this.currentAct);
     this.connSeconds = 0;
-    this.addLog(`Connecting via ${this.routeNodes.length - 1} proxy nodes...`);
-    this.addLog(`Target IP: ${this.targetIp}`);
+    this.addLog(`Connecting via ${this.routeNodes.length - 2} proxies to ${this.targetIp}...`);
     this.addLog('Route established. Trace active.');
     this.connClockTimer = setInterval(() => {
       this.connSeconds++;
@@ -413,9 +424,24 @@ export class HackPageComponent implements OnInit, OnDestroy {
   }
 
   private calculateRouteProgress(toolProgress: number): number {
-    const stageIndex = Math.min(Math.max(this.currentStage, 1), 3);
-    const segmentSize = 100 / 3;
-    return Math.min(100, ((stageIndex - 1) * segmentSize) + (toolProgress / 100) * segmentSize);
+    const segments = this.routeNodes.length - 1;
+    let start = 0;
+    let end = 0;
+
+    if (this.currentStage === 1) {
+      start = 0;
+      end = (1 / segments) * 100;
+    } else if (this.currentStage === 2) {
+      start = (1 / segments) * 100;
+      end = ((segments - 1) / segments) * 100;
+    } else if (this.currentStage === 3) {
+      start = ((segments - 1) / segments) * 100;
+      end = 100;
+    } else {
+      return 100;
+    }
+
+    return Math.min(100, start + (toolProgress / 100) * (end - start));
   }
 
   private softwareTier(type: SoftwareItem['type']): number {
@@ -433,8 +459,10 @@ export class HackPageComponent implements OnInit, OnDestroy {
   }
 
   private calculateRouteProgressForStage(completedStage: number): number {
-    const segmentSize = 100 / 3;
-    return Math.min(100, completedStage * segmentSize);
+    const segments = this.routeNodes.length - 1;
+    if (completedStage === 1) return (1 / segments) * 100;
+    if (completedStage === 2) return ((segments - 1) / segments) * 100;
+    return 100;
   }
 
   private onToolComplete(tool: UplinkTool): void {
@@ -468,7 +496,10 @@ export class HackPageComponent implements OnInit, OnDestroy {
       this.puzzleSolved = false;
       this.puzzleInput = '';
       this.puzzleError = false;
-      this.addLog(this.hasPuzzle ? 'Logs erased. Decode the access code to proceed.' : 'Intrusion logs erased. Execute payload.');
+      const logMsg = this.contract?.type === ContractType.TraceClean
+        ? 'Internal logs purged. Target records exposed.'
+        : 'Intrusion trail scrubbed. Target system accessible.';
+      this.addLog(this.hasPuzzle ? `${logMsg} Decode access code.` : `${logMsg} Execute final objective.`);
     }
     // Stage 4: objective tool — completes mission
     else if (tool.stage === 4 && this.currentStage === 4) {

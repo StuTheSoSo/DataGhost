@@ -8,12 +8,12 @@ import * as GameActions from '../store/game.actions';
 import { selectCurrentChapter, selectFactionReps, selectStoryFlags } from '../store/game.selectors';
 
 const CONTRACT_TITLES: Record<ContractType, string[]> = {
-  [ContractType.DataTheft]:         ['Extract R&D Files', 'Siphon Financial Records', 'Clone Database Shard'],
-  [ContractType.AccountAccess]:     ['Ghost Login — Executive Account', 'Backdoor Priority System', 'Credential Harvest'],
-  [ContractType.EvidencePlant]:     ['Fabricate Transaction Log', 'Insert Fake Comms Trail', 'Seed False Metadata'],
-  [ContractType.TraceClean]:        ['Wipe Bounce Trail', 'Scrub Proxy Logs', 'Erase Intrusion Signature'],
-  [ContractType.Sabotage]:          ['Corrupt Firmware Update', 'Brick SCADA Node', 'Inject Logic Bomb'],
-  [ContractType.SocialEngineering]: ['Phish Senior Analyst', 'Impersonate IT Support', 'Manipulate Insider']
+  [ContractType.DataTheft]:         ['Extract R&D Files', 'Siphon Financial Records', 'Clone Database Shard', 'Proprietary Source Leak', 'Ransomware Retrieval'],
+  [ContractType.AccountAccess]:     ['Ghost Login — Executive Account', 'Backdoor Priority System', 'Credential Harvest', 'Biometric Bypass', 'SSH Key Injection'],
+  [ContractType.EvidencePlant]:     ['Fabricate Transaction Log', 'Insert Fake Comms Trail', 'Seed False Metadata', 'Digital Frame-up', 'Modify Financial Ledger'],
+  [ContractType.TraceClean]:        ['Wipe Bounce Trail', 'Scrub Proxy Logs', 'Erase Intrusion Signature', 'Zero-Day Cleanup', 'Over-write Forensic Logs'],
+  [ContractType.Sabotage]:          ['Corrupt Firmware Update', 'Brick SCADA Node', 'Inject Logic Bomb', 'Overload Power Grid', 'Brute-force Hardware Shutdown'],
+  [ContractType.SocialEngineering]: ['Phish Senior Analyst', 'Impersonate IT Support', 'Manipulate Insider', 'Vishing Campaign', 'Deepfake Audio Injection']
 };
 
 const PUZZLE_FOR_TYPE: Record<ContractType, PuzzleType> = {
@@ -97,153 +97,171 @@ const FACTIONS = [FactionId.DataGhost, FactionId.EasternNetwork, FactionId.Weste
 /** Pre-written puzzle contracts — all clues self-contained in the description. */
 const PUZZLE_MISSIONS: Array<Omit<Contract, 'id' | 'status' | 'expiresAt'>> = [
   {
-    title: 'Pattern Lock — Helios Sub-Node',
+    title: 'Logical Silo — Redundant Array',
     description:
-      'The Helios relay node uses a numeric PIN derived from its cluster config. ' +
-      'Internal docs list 4 active relay clusters: Alpha (3 nodes), Beta (4 nodes), ' +
-      'Gamma (2 nodes), Delta (5 nodes). ' +
-      'The PIN is the product of all cluster sizes.',
+      'Three servers (Red, Blue, Green) store three unique archives (Alpha, Beta, Gamma). ' +
+      'The Red server does not hold Alpha. The Green server holds Gamma. ' +
+      'The access key is the name of the server holding the Alpha archive, lowercase.',
     type: ContractType.AccountAccess,
     difficulty: 2,
-    payout: 1600,
-    factionAffiliation: FactionId.Helios,
-    repEffects: { [FactionId.Helios]: -2 },
+    payout: 1800,
+    factionAffiliation: null,
+    repEffects: {},
     timeLimit: null,
-    puzzleType: PuzzleType.PatternIntrusion,
-    puzzleAnswer: '120',
+    puzzleType: PuzzleType.PasswordCascade,
+    puzzleAnswer: 'blue',
     isStoryMission: false,
     chapterRequirement: null,
   },
   {
-    title: 'Mirror Protocol — Dev Credentials',
+    title: 'Bit-Shift — Handshake Protocol',
     description:
-      'NovaCorp\'s lead developer uses a reversed codename as their system password. ' +
-      'The company directory lists their assigned codename as NEXUS. ' +
-      'Enter the reversed string, all lowercase.',
+      'The legacy auth-gate uses a simple character shift. ' +
+      'Shift each letter of the word "DATA" forward by exactly one position ' +
+      'in the alphabet (e.g., A becomes B). Enter the resulting 4-letter string, lowercase.',
     type: ContractType.AccountAccess,
-    difficulty: 1,
-    payout: 900,
+    difficulty: 2,
+    payout: 1500,
     factionAffiliation: null,
     repEffects: {},
     timeLimit: null,
     puzzleType: PuzzleType.CipherDecode,
-    puzzleAnswer: 'suxen',
+    puzzleAnswer: 'ebub',
     isStoryMission: false,
     chapterRequirement: null,
   },
   {
-    title: 'Ghost Signal — Auth Node Echo',
+    title: 'The "Knock" Sequence — BIOS Gate',
     description:
-      'A probe bounced off the internal auth node and returned binary data: ' +
-      '01000111 01001000 01001111 01010011 01010100. ' +
-      'Each 8-bit group encodes a standard ASCII character. ' +
-      'The access keyword is the full decoded string, lowercase.',
-    type: ContractType.DataTheft,
-    difficulty: 4,
-    payout: 3200,
-    factionAffiliation: FactionId.DataGhost,
-    repEffects: { [FactionId.DataGhost]: 3, [FactionId.WesternAlliance]: -1 },
-    timeLimit: null,
-    puzzleType: PuzzleType.BinaryHexDecode,
-    puzzleAnswer: 'ghost',
-    isStoryMission: false,
-    chapterRequirement: null,
-  },
-  {
-    title: 'Sequential Gate — Bootloader Cipher',
-    description:
-      'The vault access counter increments following the pattern embedded in the bootloader. ' +
-      'The log shows the last five values: 3, 6, 12, 24, 48. ' +
-      'The correct PIN is the next number in the sequence.',
+      'The firewall requires a "knock" based on an incremental sequence. ' +
+      'The last four digits were: 2, 6, 12, 20. ' +
+      'The next number is the access code.',
     type: ContractType.AccountAccess,
     difficulty: 3,
-    payout: 2400,
+    payout: 2200,
     factionAffiliation: FactionId.EasternNetwork,
     repEffects: { [FactionId.EasternNetwork]: 2 },
     timeLimit: null,
     puzzleType: PuzzleType.PatternIntrusion,
-    puzzleAnswer: '96',
+    puzzleAnswer: '30',
     isStoryMission: false,
     chapterRequirement: null,
   },
   {
-    title: 'Intercepted Transmission — Cipher Layer',
+    title: 'Binary Weight — Parity Check',
     description:
-      'A traffic intercept captured the target\'s encrypted passphrase: YDXOW. ' +
-      'The sysadmin\'s recovered personal notes mention: "standard shift of three, like always." ' +
-      'Each letter was shifted forward by 3 positions in the alphabet. ' +
-      'Decode the ciphertext and enter the plaintext word, lowercase.',
+      'The system checksum is based on "Bit Weight." ' +
+      'Calculate the number of "1" bits in the binary representation of decimal 15. ' +
+      'Enter the total count as a single digit.',
     type: ContractType.TraceClean,
     difficulty: 4,
-    payout: 3400,
+    payout: 2800,
     factionAffiliation: null,
     repEffects: {},
     timeLimit: null,
-    puzzleType: PuzzleType.CipherDecode,
-    puzzleAnswer: 'vault',
+    puzzleType: PuzzleType.PatternIntrusion,
+    puzzleAnswer: '4',
     isStoryMission: false,
     chapterRequirement: null,
   },
   {
-    title: 'Embedded Key — Security Briefing',
+    title: 'Subnet Topology — Node Count',
     description:
-      'A leaked internal security briefing contains a hidden acrostic — the first letter of each ' +
-      'sentence spells the master key. The briefing reads:\n' +
-      '"Segregated access tiers protect against insider threats. ' +
-      'Kernel-level monitoring is active on all nodes. ' +
-      'You must authenticate with a hardware token. ' +
-      'Logs are archived offsite every 24 hours. ' +
-      'Only root admins can override MFA. ' +
-      'Communications are TLS 1.3 encrypted. ' +
-      'Keepalive packets are signed with HMAC."\n' +
-      'Enter the seven-letter acrostic, lowercase.',
-    type: ContractType.EvidencePlant,
-    difficulty: 5,
-    payout: 4200,
-    factionAffiliation: FactionId.WesternAlliance,
-    repEffects: { [FactionId.WesternAlliance]: 3, [FactionId.EasternNetwork]: -2 },
+      'A deep-space network has 3 subnets. Each subnet contains 3 nodes. ' +
+      'Each node hosts 3 distinct databases. ' +
+      'The master key is the total number of databases in the network.',
+    type: ContractType.DataTheft,
+    difficulty: 3,
+    payout: 2400,
+    factionAffiliation: FactionId.Helios,
+    repEffects: { [FactionId.Helios]: 2 },
     timeLimit: null,
-    puzzleType: PuzzleType.CipherDecode,
-    puzzleAnswer: 'skylock',
+    puzzleType: PuzzleType.PatternIntrusion,
+    puzzleAnswer: '27',
     isStoryMission: false,
     chapterRequirement: null,
   },
   {
-    title: 'Seniority Protocol — Root Token Access',
+    title: 'Keyboard Offset — Input Error',
     description:
-      'Root token generation is restricted to the sysadmin hired earliest. ' +
-      'Three admins have access: Chen, Novak, and Park. ' +
-      'Records show: the company was founded in 2019. ' +
-      'Chen joined 3 years after the founding. ' +
-      'Novak joined 2 years after Chen. ' +
-      'Park joined the year the company was founded. ' +
-      'Enter the eligible admin\'s surname, lowercase.',
+      'A password was typed one key to the right of the intended keys on a QWERTY keyboard. ' +
+      'The typed string was: "f_s_y_s". ' +
+      'Recover the original 4-letter word and enter it in lowercase.',
     type: ContractType.AccountAccess,
     difficulty: 3,
-    payout: 2600,
+    payout: 2500,
     factionAffiliation: null,
     repEffects: {},
     timeLimit: null,
-    puzzleType: PuzzleType.SocialEngineering,
-    puzzleAnswer: 'park',
+    puzzleType: PuzzleType.CipherDecode,
+    puzzleAnswer: 'data',
     isStoryMission: false,
     chapterRequirement: null,
   },
   {
-    title: 'Corporate Override — Motto Passphrase',
+    title: 'Logical Triage — Admin Clearance',
     description:
-      'NovaCorp\'s emergency override passphrase is built from the last letter of each word ' +
-      'in their internal motto. The motto is printed on the leaked employee handbook cover: ' +
-      '"SECURE NETWORK ACCESS PROTOCOL". ' +
-      'Concatenate the four terminal letters, uppercase, no spaces.',
-    type: ContractType.Sabotage,
-    difficulty: 2,
-    payout: 1800,
+      'Three admins (Chen, Novak, Park) have access levels: 1, 2, and 3. ' +
+      'Park is level 2. Chen is not level 3. ' +
+      'The access key is the surname of the Level 3 admin, lowercase.',
+    type: ContractType.SocialEngineering,
+    difficulty: 3,
+    payout: 2100,
     factionAffiliation: FactionId.EasternNetwork,
-    repEffects: { [FactionId.EasternNetwork]: -3, [FactionId.DataGhost]: 1 },
+    repEffects: { [FactionId.EasternNetwork]: 3 },
+    timeLimit: null,
+    puzzleType: PuzzleType.SocialEngineering,
+    puzzleAnswer: 'novak',
+    isStoryMission: false,
+    chapterRequirement: null,
+  },
+  {
+    title: 'ASCII Sum — Checkpoint Beta',
+    description:
+      'In the standard ASCII table, "A" is 65 and "B" is 66. ' +
+      'The access code is the character located at position (65 + 7). ' +
+      'Enter the single character, lowercase.',
+    type: ContractType.AccountAccess,
+    difficulty: 2,
+    payout: 1600,
+    factionAffiliation: null,
+    repEffects: {},
     timeLimit: null,
     puzzleType: PuzzleType.CipherDecode,
-    puzzleAnswer: 'EKSL',
+    puzzleAnswer: 'h',
+    isStoryMission: false,
+    chapterRequirement: null,
+  },
+  {
+    title: 'The Prime Directive — Security Level',
+    description:
+      'The security override is the only prime number between 90 and 100. ' +
+      'Enter the 2-digit number to bypass the gate.',
+    type: ContractType.Sabotage,
+    difficulty: 4,
+    payout: 3200,
+    factionAffiliation: null,
+    repEffects: {},
+    timeLimit: null,
+    puzzleType: PuzzleType.PatternIntrusion,
+    puzzleAnswer: '97',
+    isStoryMission: false,
+    chapterRequirement: null,
+  },
+  {
+    title: 'Keyword Anagram — Storage Vault',
+    description:
+      'The vault unlock key is an anagram of the word "ROUTED". ' +
+      'The plaintext keyword means "a long or roundabout journey." ' +
+      'Enter the 6-letter word, lowercase.',
+    type: ContractType.DataTheft,
+    difficulty: 4,
+    payout: 3500,
+    factionAffiliation: null,
+    repEffects: {},
+    timeLimit: null,
+    puzzleType: PuzzleType.CipherDecode,
+    puzzleAnswer: 'detour',
     isStoryMission: false,
     chapterRequirement: null,
   },
@@ -309,25 +327,20 @@ export class ContractGeneratorService {
   private buildTutorialFollowupContract(rng: () => number): Contract {
     return {
       id: `tut_followup_${Date.now()}_${Math.floor(rng() * 1000)}`,
-      title: 'Yellow Token — Archive Audit',
+      title: 'Port Mapping — Gateway Scan',
       description:
-        'Four analysts sit around the secure archive node at north, east, south, and west. ' +
-        'The access key is the surname of the operator holding the yellow audit token.\n\n' +
-        'Clues:\n' +
-        '- The yellow token holder sits opposite Hart.\n' +
-        '- Park is assigned to the east station.\n' +
-        '- The green token belongs to the analyst at the north station.\n' +
-        '- The blue token holder sits opposite the green token holder.\n' +
-        '- Quill does not carry the blue token.\n' +
-        'Enter the surname of the yellow token operator, lowercase.',
+        'Three ports are active on this gateway: 80, 443, and 8080. ' +
+        'The target port is not the highest number. ' +
+        'The target port is not the standard unencrypted web port (80). ' +
+        'Enter the target port number.',
       type: ContractType.AccountAccess,
       difficulty: 2,
-      payout: 1400,
+      payout: 1200,
       factionAffiliation: FactionId.DataGhost,
       repEffects: { [FactionId.DataGhost]: 1 },
       timeLimit: null,
       puzzleType: PuzzleType.PatternIntrusion,
-      puzzleAnswer: 'park',
+      puzzleAnswer: '443',
       isStoryMission: false,
       chapterRequirement: 2,
       status: ContractStatus.Available,
@@ -383,7 +396,7 @@ export class ContractGeneratorService {
       title,
       description: isFirstContract
         ? 'Route through a clean proxy chain and breach the target gateway. Low-security intro contract with no time limit.'
-        : this.buildDescription(type, difficulty),
+        : this.buildDescription(type, difficulty, rng),
       type,
       difficulty,
       payout: isFirstContract ? 500 : payout, // Lower payout for tutorial
@@ -398,17 +411,36 @@ export class ContractGeneratorService {
     };
   }
 
-  private buildDescription(type: ContractType, difficulty: number): string {
-    const tier = difficulty <= 3 ? 'entry-level' : difficulty <= 6 ? 'mid-tier' : 'high-value';
+  private buildDescription(type: ContractType, difficulty: number, rng: () => number): string {
+    const tier = difficulty <= 3 ? 'low-security' : difficulty <= 6 ? 'standard-grade' : 'military-grade';
+    const pressure = difficulty >= 7 ? 'Extreme caution advised.' : difficulty >= 4 ? 'Avoid prolonged exposure.' : 'Standard operational protocol applies.';
+
     const descs: Record<ContractType, string> = {
-      [ContractType.DataTheft]:         `Probe the target host, locate the vault node, and exfiltrate the payload across a stealthy route. ${tier} security expected.`,
-      [ContractType.AccountAccess]:     `Breach a protected login gateway and escalate privileges without tripping the IDS. ${tier} access challenge.`,
-      [ContractType.EvidencePlant]:     `Insert forged packets into a target database stream and make the event appear legitimate. ${tier} stealth required.`,
-      [ContractType.TraceClean]:        `Wipe intrusion footprints from the relay chain and restore log integrity. ${tier} cleanup operation.`,
-      [ContractType.Sabotage]:          `Deliver a covert payload to hostile infrastructure and trigger a plausible failure. ${tier} hardening in place.`,
-      [ContractType.SocialEngineering]: `Bend a human target into granting you access to a secure network. ${tier} psychological op.`
+      [ContractType.DataTheft]:
+        `Probe the target host, locate the vault node, and exfiltrate the payload across a stealthy route. ${tier} encryption detected. ${pressure}`,
+      [ContractType.AccountAccess]:
+        `Breach a protected login gateway and escalate privileges without tripping the IDS. This is a ${tier} access challenge. ${pressure}`,
+      [ContractType.EvidencePlant]:
+        `Insert forged packets into a target database stream and make the event appear legitimate. ${tier} stealth and precision required. ${pressure}`,
+      [ContractType.TraceClean]:
+        `Wipe intrusion footprints from the relay chain and restore log integrity. High-priority ${tier} cleanup operation. ${pressure}`,
+      [ContractType.Sabotage]:
+        `Deliver a covert payload to hostile infrastructure and trigger a plausible failure. ${tier} system hardening in place. ${pressure}`,
+      [ContractType.SocialEngineering]:
+        `Bend a human target into granting you access to a secure network via a ${tier} psychological operation. ${pressure}`
     };
-    return descs[type];
+
+    const flavors = [
+      " Intel suggests a narrow window of opportunity.",
+      " The target is currently under routine maintenance.",
+      " Expect increased network traffic during the operation.",
+      " Remote monitoring has been heightened in this sector.",
+      " Local admins are reporting anomalous behavior.",
+      " The system appears to be undergoing a security audit."
+    ];
+    const flavor = flavors[Math.floor(rng() * flavors.length)];
+
+    return descs[type] + flavor;
   }
 
   /** Mulberry32 seeded RNG — deterministic, no crypto use */
