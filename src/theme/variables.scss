@@ -114,3 +114,37 @@ ion-app {
 .dg-text-red   { color: $dg-red; }
 .dg-text-dim   { color: $dg-text-dim; }
 
+// ── Accessibility: Colorblind mode ─────────────────────────
+// Replaces cyan→blue, green→yellow, red→orange for CVD users
+body.dg-colorblind {
+  --ion-color-primary:            #1a73e8;
+  --ion-color-primary-rgb:        26, 115, 232;
+  --ion-color-primary-shade:      #1765cc;
+  --ion-color-primary-tint:       #318bf5;
+  --ion-color-secondary:          #f4d03f;
+  --ion-color-secondary-rgb:      244, 208, 63;
+  --ion-color-secondary-shade:    #d4b436;
+  --ion-color-secondary-tint:     #f5d652;
+  --ion-color-danger:             #e67e22;
+  --ion-color-danger-rgb:         230, 126, 34;
+  --ion-color-danger-shade:       #ca6f1e;
+  --ion-color-danger-tint:        #e98b38;
+
+  .dg-text-cyan  { color: #1a73e8; }
+  .dg-text-green { color: #f4d03f; }
+  .dg-text-red   { color: #e67e22; }
+
+  .dg-glass {
+    border-color: rgba(26, 115, 232, 0.22);
+  }
+}
+
+// ── Accessibility: Large font mode ─────────────────────────
+body.dg-large-font {
+  font-size: 18px;
+
+  ion-content, ion-card, ion-item {
+    font-size: 1rem;
+  }
+}
+

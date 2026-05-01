@@ -25,14 +25,41 @@
       </ion-button>
     </div>
 
-    <div class="setting-card dg-glass">
-      <div class="setting-row">
-        <div class="setting-info">
-          <span class="setting-name dg-text-cyan">VERSION</span>
-          <span class="setting-desc dg-text-dim">DataGhost v1.0.0</span>
+    <!-- Accessibility -->
+    <ng-container *ngIf="accessibility$ | async as a11y">
+      <div class="setting-card dg-glass">
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-name dg-text-cyan">ACCESSIBILITY</span>
+            <span class="setting-desc dg-text-dim">Adjust display options for improved readability.</span>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-name dg-text-dim" style="font-size:0.76rem">COLORBLIND MODE</span>
+            <span class="setting-desc dg-text-dim">Replaces cyan/green/red with high-contrast alternatives.</span>
+          </div>
+          <ion-toggle
+            [checked]="a11y.colorblindMode"
+            (ionChange)="toggleColorblind(a11y)"
+            color="warning">
+          </ion-toggle>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-name dg-text-dim" style="font-size:0.76rem">LARGE FONT MODE</span>
+            <span class="setting-desc dg-text-dim">Increases base font size for improved readability.</span>
+          </div>
+          <ion-toggle
+            [checked]="a11y.largeFontMode"
+            (ionChange)="toggleLargeFont(a11y)"
+            color="primary">
+          </ion-toggle>
         </div>
       </div>
-    </div>
+    </ng-container>
 
     <div class="setting-card dg-glass">
       <div class="setting-row">
@@ -45,6 +72,27 @@
         RESET TUTORIALS
       </ion-button>
       <span class="reset-note dg-text-green" *ngIf="tutorialResetNotice">Tutorial progress reset.</span>
+    </div>
+
+    <div class="setting-card dg-glass">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-name dg-text-cyan">FEEDBACK</span>
+          <span class="setting-desc dg-text-dim">Report bugs or suggest new features directly to the team.</span>
+        </div>
+      </div>
+      <ion-button expand="block" fill="outline" class="reset-btn" (click)="sendFeedback()">
+        SEND FEEDBACK
+      </ion-button>
+    </div>
+
+    <div class="setting-card dg-glass">
+      <div class="setting-row">
+        <div class="setting-info">
+          <span class="setting-name dg-text-cyan">VERSION</span>
+          <span class="setting-desc dg-text-dim">DataGhost v1.0.0</span>
+        </div>
+      </div>
     </div>
 
   </div>

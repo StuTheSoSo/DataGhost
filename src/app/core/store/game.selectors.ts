@@ -47,3 +47,24 @@ export const selectStats           = createSelector(selectGameState, s => ({
   totalCreditsEarned: s.totalCreditsEarned,
   contractsCompleted: s.contractsCompleted
 }));
+
+// ── Achievements ─────────────────────────────────────────
+export const selectAchievements        = createSelector(selectGameState, s => s.achievements);
+export const selectUnlockedAchievements = createSelector(selectAchievements, list => list.filter(a => a.unlockedAt !== null));
+export const selectLockedAchievements   = createSelector(selectAchievements, list => list.filter(a => a.unlockedAt === null));
+
+// ── Daily Challenges ─────────────────────────────────────
+export const selectDailyChallenges = createSelector(selectGameState, s => s.dailyChallenges);
+export const selectActiveChallenges = createSelector(selectDailyChallenges, challenges => {
+  const now = Date.now();
+  return challenges.filter(c => !c.completed && c.expiresAt > now);
+});
+export const selectCompletedChallengesCount = createSelector(selectDailyChallenges, challenges =>
+  challenges.filter(c => c.completed).length
+);
+
+// ── Leaderboard ───────────────────────────────────────────
+export const selectLeaderboard = createSelector(selectGameState, s => s.leaderboard);
+
+// ── Accessibility ─────────────────────────────────────────
+export const selectAccessibility = createSelector(selectGameState, s => s.accessibility);

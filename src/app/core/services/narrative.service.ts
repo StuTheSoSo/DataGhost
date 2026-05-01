@@ -3,6 +3,7 @@ import { Store } from '@ngrx/store';
 import { GameState, StoryAct, FactionId, GameEndingType, NpcMessage } from '../models/game.models';
 import * as GameActions from '../store/game.actions';
 import { selectCurrentChapter, selectCurrentAct, selectFactionReps, selectStoryFlags } from '../store/game.selectors';
+import { AchievementService } from './achievement.service';
 
 export interface StoryMilestone {
   id: string;
@@ -20,7 +21,10 @@ export class NarrativeService {
   private storyFlags: Record<string, any> = {};
   private factionReps: any = {};
 
-  constructor(private store: Store<{ game: GameState }>) {
+  constructor(
+    private store: Store<{ game: GameState }>,
+    private achievement: AchievementService
+  ) {
     this.store.select(selectCurrentChapter).subscribe(c => this.chapter = c);
     this.store.select(selectCurrentAct).subscribe(a => this.act = a);
     this.store.select(selectStoryFlags).subscribe(f => this.storyFlags = f);
@@ -38,6 +42,7 @@ export class NarrativeService {
 
   advanceTo(chapter: number, act: StoryAct): void {
     this.store.dispatch(GameActions.advanceChapter({ chapter, act }));
+    this.achievement.onActAdvanced(act);
   }
 
   deliverMessage(message: Omit<NpcMessage, 'id' | 'timestamp' | 'read'>): void {
@@ -64,6 +69,7 @@ export class NarrativeService {
           storyFlag: 'act2_started'
         });
         this.store.dispatch(GameActions.revealFaction({ factionId: FactionId.Helios }));
+        this.achievement.onHeliosRevealed();
       }
     }
 
@@ -101,6 +107,7 @@ export class NarrativeService {
     else if (leveraged && Math.max(waRep, ensRep) < 0) ending = GameEndingType.Operator;
 
     this.store.dispatch(GameActions.setEnding({ ending }));
+    this.achievement.onEndingSet(ending);
     this.advanceTo(13, StoryAct.Sandbox);
   }
 

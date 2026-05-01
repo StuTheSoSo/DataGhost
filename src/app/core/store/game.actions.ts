@@ -2,7 +2,8 @@ import { createAction, props } from '@ngrx/store';
 import {
   PlayerIdentity, Contract, NpcMessage, ProxyNode,
   SoftwareItem, RigStats, FactionId, StoryAct,
-  GameEndingType, GameState
+  GameEndingType, GameState, DailyChallenge, LeaderboardEntry,
+  AccessibilitySettings
 } from '../models/game.models';
 
 // ── Init ───────────────────────────────────────────────────
@@ -50,6 +51,20 @@ export const markMessageRead     = createAction('[Inbox] Mark Read',            
 
 // ── Monetization ──────────────────────────────────────────
 export const setAdFree           = createAction('[Settings] Set Ad Free',           props<{ adFree: boolean }>());
+
+// ── Achievements ──────────────────────────────────────────
+export const unlockAchievement   = createAction('[Achievements] Unlock',            props<{ achievementId: string }>());
+
+// ── Daily Challenges ──────────────────────────────────────
+export const setDailyChallenges  = createAction('[Events] Set Daily Challenges',    props<{ challenges: DailyChallenge[] }>());
+export const updateChallengeProgress = createAction('[Events] Update Progress',     props<{ challengeId: string; value: number }>());
+export const completeDailyChallenge  = createAction('[Events] Complete Challenge',  props<{ challengeId: string }>());
+
+// ── Leaderboard ───────────────────────────────────────────
+export const addLeaderboardEntry = createAction('[Leaderboard] Add Entry',          props<{ entry: LeaderboardEntry }>());
+
+// ── Accessibility ─────────────────────────────────────────
+export const setAccessibility    = createAction('[Settings] Set Accessibility',     props<{ settings: AccessibilitySettings }>());
 
 // ── Persistence ───────────────────────────────────────────
 export const gameSaved           = createAction('[Game] Game Saved',                props<{ timestamp: number }>());

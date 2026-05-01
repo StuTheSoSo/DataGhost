@@ -1,0 +1,50 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/hub"></ion-back-button></ion-buttons>
+    <ion-title class="dg-text-cyan">// LEADERBOARD</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dg-scanlines">
+  <div class="lb-container">
+
+    <div class="lb-description dg-glass dg-text-dim">
+      Top operators ranked by total credits accumulated. Submit your score after each session to compete.
+    </div>
+
+    <ng-container *ngIf="(leaderboard$ | async) as board">
+      <div *ngIf="board.length === 0" class="empty-state dg-text-dim">
+        No scores yet. Complete contracts and submit your score.
+      </div>
+
+      <div *ngFor="let entry of board; let i = index" class="lb-row dg-glass"
+           [class.current-player]="isCurrentPlayer(entry, (currentPlayerAlias$ | async))">
+        <span class="lb-rank" [class.dg-text-amber]="i < 3" [class.dg-text-dim]="i >= 3">
+          {{ rank(i) }}
+        </span>
+        <div class="lb-info">
+          <span class="lb-alias" [class.dg-text-cyan]="isCurrentPlayer(entry, (currentPlayerAlias$ | async))"
+                [class.dg-text-green]="i < 3 && !isCurrentPlayer(entry, (currentPlayerAlias$ | async))">
+            {{ entry.alias }}
+          </span>
+          <span class="lb-arch dg-text-dim">{{ entry.archetype | uppercase }}</span>
+        </div>
+        <div class="lb-scores">
+          <span class="lb-credits dg-text-green">ℂ{{ entry.totalCreditsEarned | number }}</span>
+          <span class="lb-contracts dg-text-dim">{{ entry.contractsCompleted }} ops</span>
+          <span class="lb-date dg-text-dim">{{ formatDate(entry.timestamp) }}</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="currentPlayerAlias$ | async as alias">
+      <div class="submit-panel dg-glass" *ngIf="alias">
+        <p class="submit-hint dg-text-dim">Post your current score as <span class="dg-text-cyan">{{ alias }}</span> to the board.</p>
+        <ion-button expand="block" (click)="submitScore()" [disabled]="submitted">
+          {{ submitted ? 'SCORE POSTED' : 'SUBMIT MY SCORE' }}
+        </ion-button>
+      </div>
+    </ng-container>
+
+  </div>
+</ion-content>

@@ -50,6 +50,9 @@
         <ion-badge *ngIf="item.route === '/inbox' && (unreadCount$ | async) as count" color="danger">
           {{ count }}
         </ion-badge>
+        <ion-badge *ngIf="item.route === '/events' && (activeChallengesCount$ | async) as count" color="warning">
+          {{ count }}
+        </ion-badge>
       </button>
     </div>
 

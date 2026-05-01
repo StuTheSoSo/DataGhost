@@ -173,6 +173,58 @@ export const gameReducer = createReducer(
     isAdFree: adFree
   })),
 
+  // ── Achievements ─────────────────────────────────────────
+  on(GameActions.unlockAchievement, (state, { achievementId }) => {
+    const already = state.achievements.find(a => a.id === achievementId && a.unlockedAt !== null);
+    if (already) return state;
+    const achievement = state.achievements.find(a => a.id === achievementId);
+    return {
+      ...state,
+      achievements: state.achievements.map(a =>
+        a.id === achievementId ? { ...a, unlockedAt: Date.now() } : a
+      ),
+      credits: state.credits + (achievement?.creditReward ?? 0),
+      totalCreditsEarned: state.totalCreditsEarned + (achievement?.creditReward ?? 0)
+    };
+  }),
+
+  // ── Daily Challenges ─────────────────────────────────────
+  on(GameActions.setDailyChallenges, (state, { challenges }) => ({
+    ...state,
+    dailyChallenges: challenges
+  })),
+  on(GameActions.updateChallengeProgress, (state, { challengeId, value }) => ({
+    ...state,
+    dailyChallenges: state.dailyChallenges.map(c =>
+      c.id === challengeId ? { ...c, currentValue: Math.min(c.targetValue, c.currentValue + value) } : c
+    )
+  })),
+  on(GameActions.completeDailyChallenge, (state, { challengeId }) => {
+    const challenge = state.dailyChallenges.find(c => c.id === challengeId);
+    return {
+      ...state,
+      dailyChallenges: state.dailyChallenges.map(c =>
+        c.id === challengeId ? { ...c, completed: true, currentValue: c.targetValue } : c
+      ),
+      credits: state.credits + (challenge?.creditReward ?? 0),
+      totalCreditsEarned: state.totalCreditsEarned + (challenge?.creditReward ?? 0)
+    };
+  }),
+
+  // ── Leaderboard ──────────────────────────────────────────
+  on(GameActions.addLeaderboardEntry, (state, { entry }) => {
+    const updated = [...state.leaderboard, entry]
+      .sort((a, b) => b.totalCreditsEarned - a.totalCreditsEarned)
+      .slice(0, 10);
+    return { ...state, leaderboard: updated };
+  }),
+
+  // ── Accessibility ────────────────────────────────────────
+  on(GameActions.setAccessibility, (state, { settings }) => ({
+    ...state,
+    accessibility: settings
+  })),
+
   // ── Persistence ──────────────────────────────────────────
   on(GameActions.gameSaved, (state, { timestamp }) => ({
     ...state,

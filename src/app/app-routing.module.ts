@@ -42,6 +42,18 @@ const routes: Routes = [
   {
     path: 'settings',
     loadChildren: () => import('./game/settings/settings-module').then(m => m.SettingsPageModule)
+  },
+  {
+    path: 'achievements',
+    loadChildren: () => import('./game/achievements/achievements-module').then(m => m.AchievementsPageModule)
+  },
+  {
+    path: 'leaderboard',
+    loadChildren: () => import('./game/leaderboard/leaderboard-module').then(m => m.LeaderboardPageModule)
+  },
+  {
+    path: 'events',
+    loadChildren: () => import('./game/events/events-module').then(m => m.EventsPageModule)
   }
 ];
 

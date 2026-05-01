@@ -1,0 +1,111 @@
+:host { display: block; }
+
+.events-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.events-header {
+  padding: 12px 14px;
+}
+
+.events-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.events-hint {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.challenge-card {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s;
+
+  &.completed {
+    opacity: 0.6;
+    border-color: rgba(0, 255, 136, 0.2);
+  }
+}
+
+.challenge-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.challenge-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.status-badge {
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+
+.challenge-desc {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  ion-progress-bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+  }
+}
+
+.progress-label {
+  font-size: 0.68rem;
+  white-space: nowrap;
+  min-width: 40px;
+  text-align: right;
+}
+
+.challenge-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.time-remaining {
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+}
+
+.reward {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.refresh-note {
+  font-size: 0.65rem;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.empty-state {
+  font-size: 0.74rem;
+  text-align: center;
+  padding: 24px 0;
+}

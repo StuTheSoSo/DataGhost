@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/hub"></ion-back-button></ion-buttons>
+    <ion-title class="dg-text-cyan">// ACHIEVEMENTS</ion-title>
+    <ion-note slot="end" class="ach-tally dg-text-dim" *ngIf="achievements$ | async as achievements">
+      {{ unlockedCount(achievements) }}/{{ achievements.length }}
+    </ion-note>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dg-scanlines" *ngIf="achievements$ | async as achievements">
+  <div class="ach-container">
+
+    <div *ngFor="let cat of categories" class="ach-section">
+      <h2 class="section-label dg-text-dim">// {{ cat.label }}</h2>
+
+      <div *ngFor="let a of byCategory(achievements, cat.id)" class="ach-card dg-glass"
+           [class.unlocked]="a.unlockedAt !== null" [class.locked]="a.unlockedAt === null">
+        <div class="ach-icon-wrap">
+          <ion-icon [name]="a.icon" class="ach-icon"
+                    [class.dg-text-cyan]="a.unlockedAt !== null"
+                    [class.dg-text-dim]="a.unlockedAt === null"></ion-icon>
+        </div>
+        <div class="ach-info">
+          <span class="ach-title" [class.dg-text-cyan]="a.unlockedAt !== null"
+                [class.dg-text-dim]="a.unlockedAt === null">{{ a.title }}</span>
+          <span class="ach-desc dg-text-dim">{{ a.unlockedAt !== null ? a.description : '???' }}</span>
+          <span *ngIf="a.unlockedAt !== null" class="ach-date dg-text-amber">
+            {{ formatDate(a.unlockedAt) }}
+          </span>
+        </div>
+        <div class="ach-reward">
+          <span *ngIf="a.unlockedAt !== null" class="reward-badge dg-text-green">+ℂ{{ a.creditReward | number }}</span>
+          <span *ngIf="a.unlockedAt === null"  class="reward-badge dg-text-dim">ℂ{{ a.creditReward | number }}</span>
+          <ion-icon *ngIf="a.unlockedAt !== null" name="checkmark-circle" class="unlock-check dg-text-green"></ion-icon>
+          <ion-icon *ngIf="a.unlockedAt === null"  name="lock-closed-outline" class="unlock-check dg-text-dim"></ion-icon>
+        </div>
+      </div>
+
+      <div *ngIf="byCategory(achievements, cat.id).length === 0" class="empty-state dg-text-dim">
+        No achievements in this category.
+      </div>
+    </div>
+
+  </div>
+</ion-content>

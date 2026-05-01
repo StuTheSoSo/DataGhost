@@ -13,7 +13,11 @@ import { NarrativeService } from '../../core/services/narrative.service';
 import { CurrentContractService } from '../../core/services/current-contract.service';
 import { TutorialService } from '../../core/services/tutorial.service';
 import { SoundService } from '../../core/services/sound.service';
-import { selectEquippedSoftware, selectCurrentAct } from '../../core/store/game.selectors';
+import { AchievementService } from '../../core/services/achievement.service';
+import { EventService } from '../../core/services/event.service';
+import { LeaderboardService } from '../../core/services/leaderboard.service';
+import { selectEquippedSoftware, selectCurrentAct, selectStats } from '../../core/store/game.selectors';
+import { take } from 'rxjs/operators';
 
 export interface UplinkTool {
   id: string;
@@ -75,6 +79,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
       this.addLog('Access code verified. Objective unlocked.');
     } else {
       this.puzzleError = true;
+      this.puzzleFirstAttempt = false;
       this.sound.puzzleIncorrect();
       this.addLog('Access code rejected — review the mission summary.');
     }
@@ -221,6 +226,8 @@ export class HackPageComponent implements OnInit, OnDestroy {
 
   private subs = new Subscription();
   private equippedSoftware: SoftwareItem[] = [];
+  /** Tracks whether the current puzzle was solved on the very first attempt */
+  private puzzleFirstAttempt = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -234,7 +241,10 @@ export class HackPageComponent implements OnInit, OnDestroy {
     private alert: AlertController,
     private currentContract: CurrentContractService,
     private tutorial: TutorialService,
-    public sound: SoundService
+    public sound: SoundService,
+    private achievement: AchievementService,
+    private eventService: EventService,
+    private leaderboard: LeaderboardService
   ) {}
 
   ngOnInit(): void {
@@ -347,6 +357,7 @@ export class HackPageComponent implements OnInit, OnDestroy {
     this.connected = true;
     this.currentStage = 1;
     this.routeProgress = 0;
+    this.puzzleFirstAttempt = true;
     this.selectedEntryToolId = this.tools.find(t => t.stage === 1)?.id ?? null;
     this.trace.start(this.contract.difficulty, this.calculateExpectedMissionMs(), this.currentAct);
     this.connSeconds = 0;
@@ -493,6 +504,32 @@ export class HackPageComponent implements OnInit, OnDestroy {
     this.gameState.scheduleAutoSave();
     this.sound.missionComplete();
 
+    // ── Achievement & challenge tracking ─────────────────
+    const traceAtEnd = Math.floor(this.traceState.progress);
+    const connSecs = this.connSeconds;
+    const firstAttempt = this.puzzleFirstAttempt;
+
+    this.store.select(selectStats).pipe(take(1)).subscribe(stats => {
+      this.achievement.onContractCompleted({
+        traceAtEnd,
+        connSeconds: connSecs,
+        puzzleFirstAttempt: firstAttempt,
+        contractsCompleted: stats.contractsCompleted
+      });
+      this.achievement.onCreditsEarned(stats.totalCreditsEarned + this.contract!.payout);
+    });
+
+    this.achievement.onRigChanged();
+    this.achievement.onFactionChanged();
+
+    this.eventService.onContractCompleted({
+      payout: this.contract.payout,
+      traceAtEnd
+    });
+
+    this.leaderboard.submitCurrentScore();
+    // ─────────────────────────────────────────────────────
+
     const a = await this.alert.create({
       header: '// MISSION COMPLETE',
       message: `Disconnected clean. ℂ${this.contract.payout.toLocaleString()} deposited.`,
@@ -501,7 +538,6 @@ export class HackPageComponent implements OnInit, OnDestroy {
     });
     await a.present();
     await a.onDidDismiss();
-    // After the tutorial followup mission, send the player to upgrade their rig
     const isTutorialFollowup = this.contract?.title === 'Yellow Token — Archive Audit';
     if (isTutorialFollowup && this.tutorial.shouldShow('rigUpgrade')) {
       await this.tutorial.complete('firstMissionsDone');

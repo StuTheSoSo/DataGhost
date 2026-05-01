@@ -1,0 +1,57 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button defaultHref="/hub"></ion-back-button></ion-buttons>
+    <ion-title class="dg-text-cyan">// DAILY OPS</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dg-scanlines">
+  <div class="events-container">
+
+    <div class="events-header dg-glass">
+      <span class="events-title dg-text-amber">// TODAY'S CHALLENGES</span>
+      <p class="events-hint dg-text-dim">
+        Complete daily challenges to earn bonus credits. Challenges refresh at midnight.
+      </p>
+    </div>
+
+    <ng-container *ngIf="challenges$ | async as challenges">
+      <div *ngIf="challenges.length === 0" class="empty-state dg-text-dim">
+        No active challenges. Check back tomorrow.
+      </div>
+
+      <div *ngFor="let c of challenges" class="challenge-card dg-glass"
+           [class.completed]="c.completed">
+        <div class="challenge-header">
+          <span class="challenge-title" [class.dg-text-cyan]="!c.completed"
+                [class.dg-text-dim]="c.completed">{{ c.title }}</span>
+          <ion-badge [color]="c.completed ? 'secondary' : 'medium'" class="status-badge">
+            {{ c.completed ? 'DONE' : 'ACTIVE' }}
+          </ion-badge>
+        </div>
+
+        <p class="challenge-desc dg-text-dim">{{ c.description }}</p>
+
+        <div class="progress-row">
+          <ion-progress-bar
+            [value]="progressPercent(c) / 100"
+            [color]="progressColor(c)">
+          </ion-progress-bar>
+          <span class="progress-label dg-text-dim">
+            {{ c.currentValue }}/{{ c.targetValue }}
+          </span>
+        </div>
+
+        <div class="challenge-footer">
+          <span class="time-remaining dg-text-dim">{{ timeRemaining(c.expiresAt) }}</span>
+          <span class="reward dg-text-green">+ℂ{{ c.creditReward | number }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="challenges.length > 0" class="refresh-note dg-text-dim">
+        Challenges reset daily. Complete contracts to make progress.
+      </div>
+    </ng-container>
+
+  </div>
+</ion-content>

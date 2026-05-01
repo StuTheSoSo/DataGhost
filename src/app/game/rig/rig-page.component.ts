@@ -5,6 +5,7 @@ import { GameState, RigStats, SoftwareItem } from '../../core/models/game.models
 import { selectRig, selectOwnedSoftware, selectCredits } from '../../core/store/game.selectors';
 import { EconomyService } from '../../core/services/economy.service';
 import { TutorialService } from '../../core/services/tutorial.service';
+import { AchievementService } from '../../core/services/achievement.service';
 import * as GameActions from '../../core/store/game.actions';
 
 interface UpgradeOption { stat: keyof RigStats; label: string; description: string; costPerLevel: number; }
@@ -30,7 +31,8 @@ export class RigPageComponent implements OnInit {
   constructor(
     private store: Store<{ game: GameState }>,
     private economy: EconomyService,
-    private tutorial: TutorialService
+    private tutorial: TutorialService,
+    private achievement: AchievementService
   ) {}
 
   ngOnInit(): void {
@@ -56,6 +58,7 @@ export class RigPageComponent implements OnInit {
     const spent = this.economy.spend(cost, `Upgrade ${stat}`);
     if (spent) {
       this.store.dispatch(GameActions.upgradeRig({ stat, newValue: currentValue + 1 }));
+      this.achievement.onRigChanged();
       this.completeRigTutorial();
     }
   }
@@ -70,6 +73,7 @@ export class RigPageComponent implements OnInit {
     const spent = this.economy.spend(cost, `Upgrade ${item.name}`);
     if (spent) {
       this.store.dispatch(GameActions.upgradeSoftware({ itemId: item.id, newTier: item.tier + 1 }));
+      this.achievement.onRigChanged();
       this.completeRigTutorial();
     }
   }

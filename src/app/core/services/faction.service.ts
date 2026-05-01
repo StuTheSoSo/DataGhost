@@ -3,17 +3,22 @@ import { Store } from '@ngrx/store';
 import { GameState, FactionId } from '../models/game.models';
 import * as GameActions from '../store/game.actions';
 import { selectFactionReps } from '../store/game.selectors';
+import { AchievementService } from './achievement.service';
 
 @Injectable({ providedIn: 'root' })
 export class FactionService {
   private reps: Record<FactionId, any> = {} as any;
 
-  constructor(private store: Store<{ game: GameState }>) {
+  constructor(
+    private store: Store<{ game: GameState }>,
+    private achievement: AchievementService
+  ) {
     this.store.select(selectFactionReps).subscribe(r => this.reps = r);
   }
 
   adjust(factionId: FactionId, delta: number): void {
     this.store.dispatch(GameActions.adjustReputation({ factionId, delta }));
+    this.achievement.onFactionChanged();
   }
 
   getScore(factionId: FactionId): number {

@@ -1,0 +1,89 @@
+:host { display: block; }
+
+.lb-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lb-description {
+  padding: 10px 14px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+
+  &.current-player {
+    border-color: rgba(0, 229, 255, 0.35);
+    background: rgba(0, 229, 255, 0.04);
+  }
+}
+
+.lb-rank {
+  font-size: 0.9rem;
+  font-weight: 700;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.lb-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.lb-alias {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.lb-arch {
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+}
+
+.lb-scores {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.lb-credits {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.lb-contracts,
+.lb-date {
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+}
+
+.submit-panel {
+  padding: 14px;
+  margin-top: 8px;
+}
+
+.submit-hint {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.empty-state {
+  font-size: 0.74rem;
+  text-align: center;
+  padding: 24px 0;
+}

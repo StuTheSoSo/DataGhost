@@ -7,7 +7,8 @@ import { GameState } from './core/models/game.models';
 import { GameStateService } from './core/services/game-state.service';
 import { AdService } from './core/services/ad.service';
 import { TutorialService } from './core/services/tutorial.service';
-import { selectIsInitialized, selectPlayer } from './core/store/game.selectors';
+import { EventService } from './core/services/event.service';
+import { selectIsInitialized, selectPlayer, selectAccessibility } from './core/store/game.selectors';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,7 @@ export class AppComponent implements OnInit {
     private gameState: GameStateService,
     private adService: AdService,
     private tutorial: TutorialService,
+    private eventService: EventService,
     private router: Router
   ) {}
 
@@ -28,6 +30,14 @@ export class AppComponent implements OnInit {
     await this.tutorial.initialize();
     await this.adService.initialize();
     await this.gameState.load();
+
+    // Apply saved accessibility settings to the document body
+    this.store.select(selectAccessibility).subscribe(a11y => {
+      document.body.classList.toggle('dg-colorblind', a11y?.colorblindMode ?? false);
+      document.body.classList.toggle('dg-large-font', a11y?.largeFontMode ?? false);
+    });
+
+    this.eventService.initialize();
 
     combineLatest([
       this.store.select(selectIsInitialized),

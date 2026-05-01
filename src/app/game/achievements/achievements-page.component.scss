@@ -1,0 +1,106 @@
+:host { display: block; }
+
+.ach-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ach-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.section-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  margin: 0 0 4px;
+}
+
+.ach-tally {
+  padding-right: 14px;
+  font-size: 0.78rem;
+}
+
+.ach-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+
+  &.unlocked {
+    border-color: rgba(0, 229, 255, 0.25);
+  }
+
+  &.locked {
+    opacity: 0.55;
+    border-color: rgba(90, 106, 126, 0.18);
+  }
+}
+
+.ach-icon-wrap {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+}
+
+.ach-icon {
+  font-size: 1.3rem;
+}
+
+.ach-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ach-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.ach-desc {
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.ach-date {
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+.ach-reward {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.reward-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.unlock-check {
+  font-size: 1.1rem;
+}
+
+.empty-state {
+  font-size: 0.72rem;
+  padding: 8px 0;
+}
